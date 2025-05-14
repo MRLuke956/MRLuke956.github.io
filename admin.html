@@ -32,11 +32,11 @@
 
         <div>
             <label for="backendUrl">URL do Backend (key_manager.php):</label>
-            <input type="text" id="backendUrl" value="keygenamong.infinityfreeapp.com/Backend_PHP/key_manager.php" placeholder="https://yourserver.com/path/to/key_manager.php">
+            <input type="text" id="backendUrl" value="https://keygenamong.infinityfreeapp.com/Backend_PHP/key_manager.php" placeholder="https://yourserver.com/path/to/key_manager.php">
         </div>
         <div>
             <label for="adminSecret">Seu Segredo de Admin:</label>
-            <input type="password" id="adminSecret" value="fD0ujsdEeyK" placeholder="A mesma senha do PHP">
+            <input type="password" id="adminSecret" value="Amongusbot123456" placeholder="A mesma senha do PHP">
         </div>
         <hr>
 
@@ -66,7 +66,7 @@
             const backendUrl = backendUrlInput.value.trim();
             const adminSecret = adminSecretInput.value.trim();
 
-            if (!backendUrl || backendUrl === 'YOUR_PHP_BACKEND_URL_HERE/key_manager.php' || !adminSecret || adminSecret === 'CHANGE_THIS_VERY_SECRET_PASSWORD') {
+            if (!backendUrl || !adminSecret) {
                 outputDiv.className = 'error';
                 outputDiv.textContent = 'ERRO: Configure a URL do Backend e o Segredo de Admin primeiro!';
                 return null;
