@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel de Administração de Chaves</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 20px; background-color: #f0f2f5; color: #333; }
+        .container { background-color: #fff; padding: 25px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); max-width: 700px; margin: auto; }
+        h1, h2 { color: #007bff; border-bottom: 2px solid #007bff; padding-bottom: 10px; }
+        label { display: block; margin-top: 15px; margin-bottom: 5px; font-weight: 600; }
+        input[type="text"], input[type="number"], input[type="password"] {
+            width: calc(100% - 24px); padding: 10px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;
+        }
+        button {
+            background-color: #007bff; color: white; padding: 10px 18px; border: none; border-radius: 4px; cursor: pointer; font-size: 1em; margin-top:10px; margin-right: 10px; transition: background-color 0.2s ease;
+        }
+        button:hover { background-color: #0056b3; }
+        button.secondary { background-color: #6c757d; }
+        button.secondary:hover { background-color: #545b62; }
+        #output, .keys-container { margin-top: 20px; padding: 15px; border: 1px solid #e0e0e0; background-color: #f9f9f9; border-radius: 4px; white-space: pre-wrap; word-wrap: break-word; min-height: 50px; }
+        .key-list { list-style-type: none; padding-left: 0; }
+        .key-list li { background-color: #e9ecef; margin-bottom: 6px; padding: 8px 12px; border-radius: 3px; font-family: 'Courier New', Courier, monospace; }
+        .error { color: #d9534f; font-weight: bold;}
+        .success { color: #5cb85c; font-weight: bold;}
+        hr { border: 0; height: 1px; background-color: #ddd; margin: 25px 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Painel de Admin de Chaves</h1>
+
+        <div>
+            <label for="backendUrl">URL do Backend (key_manager.php):</label>
+            <input type="text" id="backendUrl" value="YOUR_PHP_BACKEND_URL_HERE/key_manager.php" placeholder="https://yourserver.com/path/to/key_manager.php">
+        </div>
+        <div>
+            <label for="adminSecret">Seu Segredo de Admin:</label>
+            <input type="password" id="adminSecret" value="CHANGE_THIS_VERY_SECRET_PASSWORD" placeholder="A mesma senha do PHP">
+        </div>
+        <hr>
+
+        <h2>Gerar Novas Chaves</h2>
+        <div>
+            <label for="keyCount">Quantidade para Gerar (1-100):</label>
+            <input type="number" id="keyCount" value="10" min="1" max="100">
+            <button onclick="generateKeys()">Gerar Chaves</button>
+        </div>
+
+        <hr>
+        <h2>Visualizar Chaves</h2>
+        <button class="secondary" onclick="viewKeys()">Ver Chaves Atuais</button>
+        <div id="keysListDisplay" class="keys-container" style="margin-top:10px;">Clique em "Ver Chaves Atuais" para carregar.</div>
+
+        <hr>
+        <h2>Status/Resultado da Última Ação:</h2>
+        <div id="output">Aguardando ação...</div>
+    </div>
+
+    <script>
+        async function fetchData(action, params = {}) {
+            const backendUrlInput = document.getElementById('backendUrl');
+            const adminSecretInput = document.getElementById('adminSecret');
+            const outputDiv = document.getElementById('output');
+
+            const backendUrl = backendUrlInput.value.trim();
+            const adminSecret = adminSecretInput.value.trim();
+
+            if (!backendUrl || backendUrl === 'YOUR_PHP_BACKEND_URL_HERE/key_manager.php' || !adminSecret || adminSecret === 'CHANGE_THIS_VERY_SECRET_PASSWORD') {
+                outputDiv.className = 'error';
+                outputDiv.textContent = 'ERRO: Configure a URL do Backend e o Segredo de Admin primeiro!';
+                return null;
+            }
+
+            params.action = action;
+            params.secret = adminSecret; // Always send secret for admin actions
+
+            const queryParams = new URLSearchParams(params).toString();
+            const url = `${backendUrl}?${queryParams}`;
+            
+            outputDiv.className = '';
+            outputDiv.textContent = 'Processando...';
+
+            try {
+                const response = await fetch(url, { cache: 'no-store' }); // Prevent caching for admin actions
+                const result = await response.json();
+
+                if (result.status === 'success') {
+                    outputDiv.className = 'success';
+                    outputDiv.textContent = 'Sucesso: ' + (result.message || 'Operação concluída.');
+                } else {
+                    outputDiv.className = 'error';
+                    outputDiv.textContent = 'ERRO: ' + (result.message || 'Falha na operação.');
+                }
+                return result;
+            } catch (err) {
+                outputDiv.className = 'error';
+                outputDiv.textContent = 'ERRO DE CONEXÃO: ' + err.message + '. Verifique a URL do backend, se o servidor está online e se o CORS está configurado corretamente no PHP.';
+                console.error("Fetch error:", err);
+                return null;
+            }
+        }
+
+        async function generateKeys() {
+            const count = document.getElementById('keyCount').value;
+            if (parseInt(count) < 1 || parseInt(count) > 100) {
+                document.getElementById('output').className = 'error';
+                document.getElementById('output').textContent = 'ERRO: Quantidade deve ser entre 1 e 100.';
+                return;
+            }
+            await fetchData('admin_generate_keys', { count: count });
+            // Optionally, refresh the keys list after generation
+            // await viewKeys(); 
+        }
+
+        async function viewKeys() {
+            const keysListDiv = document.getElementById('keysListDisplay');
+            keysListDiv.innerHTML = 'Carregando chaves...'; // Feedback imediato
+            const result = await fetchData('admin_view_keys');
+            
+            if (result && result.status === 'success' && result.data) {
+                let html = '<h3>Chaves Disponíveis (' + (result.data.available_keys ? result.data.available_keys.length : 0) + '):</h3><ul class="key-list">';
+                if (result.data.available_keys && result.data.available_keys.length > 0) {
+                    result.data.available_keys.forEach(key => { html += `<li>${key}</li>`; });
+                } else {
+                    html += '<li>Nenhuma chave disponível.</li>';
+                }
+                html += '</ul>';
+
+                html += '<h3 style="margin-top:20px;">Chaves Usadas (' + (result.data.used_keys ? result.data.used_keys.length : 0) + '):</h3><ul class="key-list">';
+                if (result.data.used_keys && result.data.used_keys.length > 0) {
+                    result.data.used_keys.forEach(key => { html += `<li>${key}</li>`; });
+                } else {
+                    html += '<li>Nenhuma chave usada.</li>';
+                }
+                html += '</ul>';
+                keysListDiv.innerHTML = html;
+            } else if (result) {
+                 keysListDiv.innerHTML = `<p class="error">Não foi possível carregar as chaves: ${result.message || 'Erro desconhecido.'}</p>`;
+            } else {
+                keysListDiv.innerHTML = `<p class="error">Falha ao buscar chaves. Verifique o console para mais detalhes.</p>`;
+            }
+        }
+    </script>
+</body>
+</html>
