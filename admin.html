@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Painel de Administração de Chaves</title>
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 20px; background-color: #f0f2f5; color: #333; }
@@ -21,69 +21,64 @@
         #output, .keys-container { margin-top: 20px; padding: 15px; border: 1px solid #e0e0e0; background-color: #f9f9f9; border-radius: 4px; white-space: pre-wrap; word-wrap: break-word; min-height: 50px; }
         .key-list { list-style-type: none; padding-left: 0; }
         .key-list li { background-color: #e9ecef; margin-bottom: 6px; padding: 8px 12px; border-radius: 3px; font-family: 'Courier New', Courier, monospace; }
-        .error { color: #d9534f; font-weight: bold;}
-        .success { color: #5cb85c; font-weight: bold;}
+        .error { color: #d9534f; font-weight: bold; }
+        .success { color: #5cb85c; font-weight: bold; }
         hr { border: 0; height: 1px; background-color: #ddd; margin: 25px 0; }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Painel de Admin de Chaves</h1>
+        <h1>Painel de Administração de Chaves</h1>
 
         <div>
-            <label for="backendUrl">URL do Backend (key_manager.php):</label>
-            <input type="text" id="backendUrl" value="https://keygenamong.infinityfreeapp.com/Backend_PHP/key_manager.php" placeholder="https://yourserver.com/path/to/key_manager.php">
+            <label for="backendUrl">URL do Backend:</label>
+            <input type="text" id="backendUrl" value="https://keygenx-ce8h.onrender.com" placeholder="https://seu-servidor.com" />
         </div>
         <div>
             <label for="adminSecret">Seu Segredo de Admin:</label>
-            <input type="password" id="adminSecret" value="Amongusbot123456" placeholder="A mesma senha do PHP">
+            <input type="password" id="adminSecret" value="Amongusbot123456" placeholder="Sua senha de admin" />
         </div>
-        <hr>
+        <hr />
 
         <h2>Gerar Novas Chaves</h2>
         <div>
-            <label for="keyCount">Quantidade para Gerar (1-100):</label>
-            <input type="number" id="keyCount" value="10" min="1" max="100">
+            <label for="keyCount">Quantidade para Gerar (1–100):</label>
+            <input type="number" id="keyCount" value="10" min="1" max="100" />
             <button onclick="generateKeys()">Gerar Chaves</button>
         </div>
 
-        <hr>
+        <hr />
         <h2>Visualizar Chaves</h2>
         <button class="secondary" onclick="viewKeys()">Ver Chaves Atuais</button>
         <div id="keysListDisplay" class="keys-container" style="margin-top:10px;">Clique em "Ver Chaves Atuais" para carregar.</div>
 
-        <hr>
+        <hr />
         <h2>Status/Resultado da Última Ação:</h2>
         <div id="output">Aguardando ação...</div>
     </div>
 
     <script>
-        async function fetchData(action, params = {}) {
-            const backendUrlInput = document.getElementById('backendUrl');
-            const adminSecretInput = document.getElementById('adminSecret');
+        async function fetchData(endpoint, params = {}) {
+            const backendUrl = document.getElementById('backendUrl').value.trim().replace(/\/+$/, '');
+            const adminSecret = document.getElementById('adminSecret').value.trim();
             const outputDiv = document.getElementById('output');
-
-            const backendUrl = backendUrlInput.value.trim();
-            const adminSecret = adminSecretInput.value.trim();
 
             if (!backendUrl || !adminSecret) {
                 outputDiv.className = 'error';
-                outputDiv.textContent = 'ERRO: Configure a URL do Backend e o Segredo de Admin primeiro!';
+                outputDiv.textContent = 'ERRO: Preencha a URL do backend e o segredo de admin!';
                 return null;
             }
 
-            params.action = action;
             params.secret = adminSecret;
+            const query = new URLSearchParams(params).toString();
+            const url = `${backendUrl}/${endpoint}?${query}`;
 
-            const queryParams = new URLSearchParams(params).toString();
-            const url = `${backendUrl}?${queryParams}`;
-            
             outputDiv.className = '';
             outputDiv.textContent = 'Processando...';
 
             try {
-                const response = await fetch(url, { cache: 'no-store' });
-                const result = await response.json();
+                const res = await fetch(url, { cache: 'no-store' });
+                const result = await res.json();
 
                 if (result.status === 'success') {
                     outputDiv.className = 'success';
@@ -95,48 +90,39 @@
                 return result;
             } catch (err) {
                 outputDiv.className = 'error';
-                outputDiv.textContent = 'ERRO DE CONEXÃO: ' + err.message + '. Verifique a URL do backend, se o servidor está online e se o CORS está configurado corretamente no PHP.';
-                console.error("Fetch error:", err);
+                outputDiv.textContent = 'Erro de conexão: ' + err.message;
+                console.error('Fetch error:', err);
                 return null;
             }
         }
 
         async function generateKeys() {
-            const count = document.getElementById('keyCount').value;
-            if (parseInt(count) < 1 || parseInt(count) > 100) {
+            const count = parseInt(document.getElementById('keyCount').value, 10);
+            if (isNaN(count) || count < 1 || count > 100) {
                 document.getElementById('output').className = 'error';
-                document.getElementById('output').textContent = 'ERRO: Quantidade deve ser entre 1 e 100.';
+                document.getElementById('output').textContent = 'Quantidade inválida (1–100).';
                 return;
             }
-            await fetchData('admin_generate_keys', { count: count });
+            await fetchData('admin_generate_keys', { count });
         }
 
         async function viewKeys() {
-            const keysListDiv = document.getElementById('keysListDisplay');
-            keysListDiv.innerHTML = 'Carregando chaves...';
+            const listDiv = document.getElementById('keysListDisplay');
+            listDiv.innerHTML = 'Carregando...';
             const result = await fetchData('admin_view_keys');
-            
-            if (result && result.status === 'success' && result.data) {
-                let html = '<h3>Chaves Disponíveis (' + (result.data.available_keys ? result.data.available_keys.length : 0) + '):</h3><ul class="key-list">';
-                if (result.data.available_keys && result.data.available_keys.length > 0) {
-                    result.data.available_keys.forEach(key => { html += `<li>${key}</li>`; });
-                } else {
-                    html += '<li>Nenhuma chave disponível.</li>';
-                }
-                html += '</ul>';
 
-                html += '<h3 style="margin-top:20px;">Chaves Usadas (' + (result.data.used_keys ? result.data.used_keys.length : 0) + '):</h3><ul class="key-list">';
-                if (result.data.used_keys && result.data.used_keys.length > 0) {
-                    result.data.used_keys.forEach(key => { html += `<li>${key}</li>`; });
-                } else {
-                    html += '<li>Nenhuma chave usada.</li>';
-                }
+            if (result?.status === 'success' && result.data) {
+                const available = result.data.available_keys || [];
+                const used = result.data.used_keys || [];
+                let html = `<h3>Chaves Disponíveis (${available.length}):</h3><ul class="key-list">`;
+                html += available.length ? available.map(k => `<li>${k}</li>`).join('') : '<li>Nenhuma disponível.</li>';
                 html += '</ul>';
-                keysListDiv.innerHTML = html;
-            } else if (result) {
-                 keysListDiv.innerHTML = `<p class="error">Não foi possível carregar as chaves: ${result.message || 'Erro desconhecido.'}</p>`;
+                html += `<h3 style="margin-top:20px;">Chaves Usadas (${used.length}):</h3><ul class="key-list">`;
+                html += used.length ? used.map(k => `<li>${k}</li>`).join('') : '<li>Nenhuma usada.</li>';
+                html += '</ul>';
+                listDiv.innerHTML = html;
             } else {
-                keysListDiv.innerHTML = `<p class="error">Falha ao buscar chaves. Verifique o console para mais detalhes.</p>`;
+                listDiv.innerHTML = `<p class="error">Erro: ${result?.message || 'Não foi possível carregar.'}</p>`;
             }
         }
     </script>
