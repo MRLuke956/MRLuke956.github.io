@@ -54,6 +54,12 @@
     .secondary:hover {
       background-color: #545b62;
     }
+    .danger {
+      background-color: crimson;
+    }
+    .danger:hover {
+      background-color: darkred;
+    }
     .success {
       color: #28a745;
       font-weight: bold;
@@ -101,12 +107,21 @@
     <button class="secondary" onclick="viewKeys()">Ver Chaves</button>
     <div id="keysListDisplay" class="keys-container">Nenhuma chave carregada ainda.</div>
 
+    <h2>Excluir Chaves</h2>
+    <label for="deleteKey">Excluir chave específica:</label>
+    <input type="text" id="deleteKey" placeholder="Ex: 1234-5678-ABCD-EFGH" />
+    <button class="secondary" onclick="deleteSpecificKey()">Excluir Chave</button>
+
+    <div style="margin-top:15px;">
+      <button class="danger" onclick="deleteAllKeys()">🧨 Excluir Todas as Chaves</button>
+    </div>
+
     <h2>Status:</h2>
     <div id="output">Aguardando ação...</div>
   </div>
 
   <script>
-    async function fetchData(endpoint, params = {}) {
+    async function fetchData(endpoint, params = {}, method = 'GET') {
       const backendUrl = document.getElementById('backendUrl').value.trim().replace(/\/+$/, '');
       const adminSecret = document.getElementById('adminSecret').value.trim();
       const output = document.getElementById('output');
@@ -124,17 +139,11 @@
       output.textContent = '⏳ Processando...';
 
       try {
-        const res = await fetch(url, { cache: 'no-store' });
+        const res = await fetch(url, { method, cache: 'no-store' });
         const data = await res.json();
 
-        if (data.status === 'success') {
-          output.className = 'success';
-          output.textContent = '✅ ' + (data.message || 'Sucesso.');
-        } else {
-          output.className = 'error';
-          output.textContent = '❌ ' + (data.message || 'Erro.');
-        }
-
+        output.className = data.status === 'success' ? 'success' : 'error';
+        output.textContent = (data.status === 'success' ? '✅ ' : '❌ ') + (data.message || (data.status === 'success' ? 'Sucesso.' : 'Erro.'));
         return data;
       } catch (err) {
         output.className = 'error';
@@ -150,7 +159,6 @@
         document.getElementById('output').textContent = '❌ Quantidade inválida.';
         return;
       }
-
       await fetchData('admin_generate_keys', { count });
     }
 
@@ -175,6 +183,23 @@
       html += '</ul>';
 
       keysList.innerHTML = html;
+    }
+
+    async function deleteSpecificKey() {
+      const key = document.getElementById('deleteKey').value.trim();
+      if (!key) {
+        document.getElementById('output').className = 'error';
+        document.getElementById('output').textContent = '❌ Digite a chave que deseja excluir.';
+        return;
+      }
+      const result = await fetchData('admin_delete_key', { key }, 'DELETE');
+      if (result?.status === 'success') viewKeys();
+    }
+
+    async function deleteAllKeys() {
+      if (!confirm("⚠️ Tem certeza que deseja excluir TODAS as chaves? Essa ação não pode ser desfeita.")) return;
+      const result = await fetchData('admin_delete_all_keys', {}, 'DELETE');
+      if (result?.status === 'success') viewKeys();
     }
   </script>
 </body>
