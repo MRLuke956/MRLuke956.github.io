@@ -32,11 +32,11 @@
 
         <div>
             <label for="backendUrl">URL do Backend (key_manager.php):</label>
-            <input type="text" id="backendUrl" value="YOUR_PHP_BACKEND_URL_HERE/key_manager.php" placeholder="https://yourserver.com/path/to/key_manager.php">
+            <input type="text" id="backendUrl" value="https://seusite.infinityfree.com/Backend_PHP/key_manager.php" placeholder="https://yourserver.com/path/to/key_manager.php">
         </div>
         <div>
             <label for="adminSecret">Seu Segredo de Admin:</label>
-            <input type="password" id="adminSecret" value="CHANGE_THIS_VERY_SECRET_PASSWORD" placeholder="A mesma senha do PHP">
+            <input type="password" id="adminSecret" value="SUA_SENHA_SECRETA" placeholder="A mesma senha do PHP">
         </div>
         <hr>
 
@@ -73,7 +73,7 @@
             }
 
             params.action = action;
-            params.secret = adminSecret; // Always send secret for admin actions
+            params.secret = adminSecret;
 
             const queryParams = new URLSearchParams(params).toString();
             const url = `${backendUrl}?${queryParams}`;
@@ -82,7 +82,7 @@
             outputDiv.textContent = 'Processando...';
 
             try {
-                const response = await fetch(url, { cache: 'no-store' }); // Prevent caching for admin actions
+                const response = await fetch(url, { cache: 'no-store' });
                 const result = await response.json();
 
                 if (result.status === 'success') {
@@ -109,13 +109,11 @@
                 return;
             }
             await fetchData('admin_generate_keys', { count: count });
-            // Optionally, refresh the keys list after generation
-            // await viewKeys(); 
         }
 
         async function viewKeys() {
             const keysListDiv = document.getElementById('keysListDisplay');
-            keysListDiv.innerHTML = 'Carregando chaves...'; // Feedback imediato
+            keysListDiv.innerHTML = 'Carregando chaves...';
             const result = await fetchData('admin_view_keys');
             
             if (result && result.status === 'success' && result.data) {
