@@ -13,7 +13,8 @@
       --secondary: #6c757d;
       --danger: crimson;
       --success: #28a745;
-      --error: #dc3545;
+      --error: #dc3545; /* Usado para erros e toasts de erro */
+      --info: #17a2b8; /* Cor para toasts informativos, se desejar */
       --shadow: 0 4px 24px rgba(0,0,0,0.12);
     }
     body.dark {
@@ -25,6 +26,7 @@
       --danger: #ff3b3b;
       --success: #38e38a;
       --error: #ff6b6b;
+      --info: #4bc0d3;
       --shadow: 0 4px 24px rgba(0,0,0,0.36);
     }
     body {
@@ -33,6 +35,7 @@
       color: var(--text);
       margin: 0;
       min-height: 100vh;
+      transition: background-color 0.3s, color 0.3s;
     }
     .container {
       max-width: 700px;
@@ -54,9 +57,13 @@
       padding-bottom: 10px;
       margin-top: 0;
     }
+    h1 { margin-bottom: 25px;}
+    h2 { margin-top: 25px; margin-bottom: 15px; font-size: 1.5em;}
+
     label {
       display: block;
       margin-top: 15px;
+      margin-bottom: 5px;
       font-weight: bold;
     }
     input[type="text"], input[type="number"], input[type="password"] {
@@ -71,9 +78,13 @@
       color: var(--text);
     }
     input[readonly] {
-      background: #e9ecef;
+      background: #e9ecef; /* Considerar var() para tema escuro */
       color: #444;
       font-family: monospace;
+    }
+    body.dark input[readonly] {
+        background: #3a3f4b;
+        color: #ccc;
     }
     button {
       background-color: var(--primary);
@@ -84,39 +95,29 @@
       cursor: pointer;
       margin-top: 10px;
       font-size: 1rem;
-      transition: background 0.15s;
+      transition: background-color 0.15s;
       min-width: 110px;
-      position: relative;
+      position: relative; /* Para o spinner */
+      display: inline-flex; /* Para alinhar texto e spinner */
+      align-items: center;
+      justify-content: center;
     }
     button[disabled] {
       opacity: 0.6;
       cursor: not-allowed;
     }
-    .secondary {
-      background-color: var(--secondary);
-    }
-    .secondary:hover:not([disabled]) {
-      background-color: #545b62;
-    }
-    .danger {
-      background-color: var(--danger);
-    }
-    .danger:hover:not([disabled]) {
-      background-color: darkred;
-    }
-    .success {
-      color: var(--success);
-      font-weight: bold;
-    }
-    .error {
-      color: var(--error);
-      font-weight: bold;
-    }
-    .key-list {
-      list-style: none;
-      padding: 0;
-      margin: 0;
-    }
+    button.secondary { background-color: var(--secondary); }
+    button.secondary:hover:not([disabled]) { background-color: #545b62; }
+    body.dark button.secondary:hover:not([disabled]) { background-color: #5a6268; }
+
+    button.danger { background-color: var(--danger); }
+    button.danger:hover:not([disabled]) { background-color: darkred; }
+    body.dark button.danger:hover:not([disabled]) { background-color: #c82333; }
+    
+    .status-message.success { color: var(--success); font-weight: bold; }
+    .status-message.error { color: var(--error); font-weight: bold; }
+
+    .key-list { list-style: none; padding: 0; margin: 0; }
     .key-list li {
       background: #e9ecef;
       margin-bottom: 5px;
@@ -126,8 +127,13 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      color: var(--text);
+      color: var(--text); /* Cor de texto geral */
     }
+    body.dark .key-list li {
+        background: #2c3242;
+        color: var(--text);
+    }
+
     .copy-btn {
       background: transparent;
       border: none;
@@ -139,9 +145,9 @@
       border-radius: 3px;
       transition: background 0.15s;
     }
-    .copy-btn:hover {
-      background: #dbeafe;
-    }
+    .copy-btn:hover { background: #dbeafe; }
+    body.dark .copy-btn:hover { background: #3a3f4b; }
+
     #output, .keys-container {
       margin-top: 20px;
       padding: 12px;
@@ -150,15 +156,21 @@
       border-radius: 4px;
       min-height: 35px;
       font-size: 1.05em;
-      color: var(--text);
+      color: var(--text); /* Cor de texto geral */
     }
+    body.dark #output, body.dark .keys-container {
+        background: #2c3242;
+        border-color: #444c5e;
+        color: var(--text);
+    }
+
     .toast {
       position: fixed;
       bottom: 32px;
       right: 32px;
       background: var(--panel);
       color: var(--text);
-      border-left: 6px solid var(--primary);
+      border-left: 6px solid var(--primary); /* Cor padrão */
       box-shadow: var(--shadow);
       padding: 16px 24px;
       border-radius: 6px;
@@ -166,7 +178,7 @@
       z-index: 9999;
       opacity: 0;
       pointer-events: none;
-      transition: opacity 0.3s, transform 0.3s;
+      transition: opacity 0.3s, transform 0.3s, border-left-color 0.3s;
       transform: translateY(40px);
     }
     .toast.show {
@@ -174,6 +186,11 @@
       pointer-events: auto;
       transform: translateY(0);
     }
+    .toast.success { border-left-color: var(--success); }
+    .toast.error   { border-left-color: var(--error); }
+    .toast.info    { border-left-color: var(--info); } /* Adicionado para consistência */
+
+
     .theme-toggle {
       position: absolute;
       top: 24px;
@@ -184,35 +201,19 @@
       font-size: 1.5em;
       color: var(--primary);
       transition: color 0.2s;
+      padding: 5px; /* Aumentar área de clique */
     }
-    .theme-toggle:hover {
-      color: var(--danger);
-    }
-    .dashboard {
-      display: flex;
-      gap: 32px;
-      margin: 22px 0 18px 0;
-      justify-content: flex-start;
-      flex-wrap: wrap;
-    }
-    .dashboard .stat {
-      background: #e9ecef;
-      color: var(--text);
-      border-radius: 6px;
-      padding: 14px 22px;
-      min-width: 120px;
-      font-size: 1.1em;
-      text-align: center;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.07);
-    }
+    .theme-toggle:hover { color: var(--danger); }
+
     .confirm-modal-bg {
       position: fixed;
       top: 0; left: 0; width: 100vw; height: 100vh;
-      background: rgba(0,0,0,0.18);
+      background: rgba(0,0,0,0.25);
       z-index: 2000;
-      display: flex;
+      display: flex; /* Controlado por JS: none/flex */
       align-items: center;
       justify-content: center;
+      backdrop-filter: blur(2px);
     }
     .confirm-modal {
       background: var(--panel);
@@ -224,6 +225,9 @@
       max-width: 90vw;
       text-align: center;
     }
+    .confirm-modal p { margin-top: 0; margin-bottom: 20px; font-size: 1.1em;}
+    .confirm-modal button { margin: 0 8px;}
+
     .footer {
       margin-top: 30px;
       text-align: center;
@@ -231,345 +235,442 @@
       font-size: 0.97em;
       padding-bottom: 10px;
     }
-    @media (max-width: 600px) {
-      .container { padding: 10px 2vw; }
-      h1, h2 { font-size: 1.2em;}
-      .dashboard { flex-direction: column; gap: 12px; }
+    body.dark .footer { color: #666; }
+
+    /* Spinner CSS */
+    .spinner {
+      display: inline-block;
+      width: 1em; /* Tamanho relativo ao font-size do botão */
+      height: 1em;
+      border: 3px solid currentColor; /* Usa a cor do texto do botão */
+      border-right-color: transparent; /* Cria o efeito de "gap" no círculo */
+      border-radius: 50%;
+      animation: spin .75s linear infinite;
+      margin-left: 10px; /* Espaço entre o texto do botão e o spinner */
+      vertical-align: -0.125em; /* Ajuste fino vertical */
     }
-  </style>
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    /* Em botões secundários com tema claro, a cor do texto pode ser escura */
+    body:not(.dark) button.secondary { color: var(--text); } /* Se o texto for escuro no tema claro */
+    body:not(.dark) button.secondary .spinner {
+        border: 3px solid currentColor;
+        border-right-color: transparent;
+    }
+
+
+    @media (max-width: 600px) {
+      .container { padding: 20px 15px; margin: 20px auto; }
+      h1 { font-size: 1.5em; }
+      h2 { font-size: 1.3em;}
+      button { font-size: 0.95rem; padding: 10px 12px;}
+      .confirm-modal { padding: 20px 25px 15px 25px; }
+      .toast { width: calc(100% - 40px); right: 20px; bottom: 20px; }
+    }
   </style>
 </head>
 <body>
   <div class="container" aria-label="Painel de Administração">
+    <button class="theme-toggle" id="themeToggle" title="Alternar tema" aria-label="Alternar tema">🌓</button>
     <h1>
-      <img src="https://img.icons8.com/ios-filled/50/007bff/lock-2.png" alt="Admin" class="logo-admin"/>
+      <img src="https://img.icons8.com/ios-filled/50/007bff/lock-2.png" alt="" class="logo-admin"/>
       Painel de Administração
     </h1>
 
-
     <div id="loginModal" style="position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.18);display:flex;align-items:center;justify-content:center;z-index:1000;">
-      <div style="background:#fff;padding:32px 28px 22px 28px;border-radius:8px;box-shadow:0 4px 24px rgba(0,0,0,0.16);min-width:320px;max-width:90vw;text-align:center;">
-        <h2 style="color:#007bff;margin-top:0">Login Admin</h2>
+      <form id="loginForm" style="background:var(--panel);padding:32px 28px 22px 28px;border-radius:8px;box-shadow:var(--shadow);min-width:320px;max-width:90vw;text-align:center;">
+        <h2 style="color:var(--primary);margin-top:0;">Login Admin</h2>
         <label for="adminSecretModal" style="margin-top:0;">Senha de Admin:</label>
         <input type="password" id="adminSecretModal" autocomplete="current-password" aria-label="Senha de Admin" placeholder="Digite sua senha (ex: admin1x)" style="width:100%;padding:10px;margin-bottom:10px;border-radius:4px;border:1px solid #ccc;font-size:1rem;box-sizing:border-box;" />
-        <button id="btnLogin" style="width:100%;margin-top:6px;">Entrar</button>
-        <div id="loginError" class="error" style="margin-top:10px;display:none;"></div>
+        <button type="submit" id="btnLogin" style="width:100%;margin-top:6px;">Entrar</button>
+        <div id="loginError" class="status-message error" style="margin-top:10px;min-height:1.2em;display:none;"></div>
+      </form>
+    </div>
+
+    <section aria-labelledby="generate-keys-title">
+      <h2 id="generate-keys-title">Gerar Novas Chaves</h2>
+      <label for="keyCount">Quantidade (1–100):</label>
+      <input type="number" id="keyCount" min="1" max="100" value="5" aria-describedby="keyCountHelp" />
+      <button id="btnGerar" onclick="generateKeys()" disabled>Gerar</button>
+    </section>
+
+    <section aria-labelledby="view-keys-title">
+      <h2 id="view-keys-title">Visualizar Chaves</h2>
+      <button id="btnVer" class="secondary" onclick="viewKeys()" disabled>Ver Chaves</button>
+      <div id="keysListDisplay" class="keys-container" aria-live="polite">Nenhuma chave carregada ainda.</div>
+    </section>
+    
+    <section aria-labelledby="delete-keys-title">
+      <h2 id="delete-keys-title">Excluir Chaves</h2>
+      <form id="deleteSpecificKeyForm">
+        <label for="deleteKey">Excluir chave específica:</label>
+        <input type="text" id="deleteKey" placeholder="Ex: 1234-5678-ABCD-EFGH" />
+        <button type="button" id="btnExcluir" class="secondary" onclick="deleteSpecificKey()" disabled>Excluir Chave</button>
+      </form>
+      <div style="margin-top:15px;">
+        <button id="btnExcluirTodas" class="danger" onclick="deleteAllKeysConfirm()" disabled>🧨 Excluir Todas as Chaves</button>
       </div>
-    </div>
-
-    <h2>Gerar Novas Chaves</h2>
-    <label for="keyCount">Quantidade (1–100):</label>
-    <input type="number" id="keyCount" min="1" max="100" value="5" />
-    <button id="btnGerar" onclick="generateKeys()" disabled>Gerar</button>
-
-    <h2>Visualizar Chaves</h2>
-    <button id="btnVer" class="secondary" onclick="viewKeys()" disabled>Ver Chaves</button>
-    <div id="keysListDisplay" class="keys-container" aria-live="polite">Nenhuma chave carregada ainda.</div>
-
-    <h2>Excluir Chaves</h2>
-    <label for="deleteKey">Excluir chave específica:</label>
-    <input type="text" id="deleteKey" placeholder="Ex: 1234-5678-ABCD-EFGH" />
-    <button id="btnExcluir" class="secondary" onclick="deleteSpecificKey()" disabled>Excluir Chave</button>
-
-    <div style="margin-top:15px;">
-      <button id="btnExcluirTodas" class="danger" onclick="deleteAllKeys()" disabled>🧨 Excluir Todas as Chaves</button>
-    </div>
+    </section>
 
     <h2>Status:</h2>
-    <div id="output" aria-live="polite">Aguardando ação...</div>
+    <div id="output" aria-live="polite" class="status-message">Aguardando ação...</div>
+    
     <div style="margin-top: 18px; text-align: right;">
       <button id="btnLogout" class="secondary" style="padding: 6px 18px;display:none;">Sair</button>
     </div>
+
     <div class="footer">
-      &copy; 2025 Painel Admin | Feito por Luke | Versão 1.1
+      © <span id="currentYear"></span> Painel Admin | Feito por Luke | Versão 1.2
+    </div>
+  </div>
+
+  <!-- Toast Notification (inicialmente oculto) -->
+  <div id="toast" class="toast" role="alert"></div>
+
+  <!-- Modal de Confirmação (inicialmente oculto) -->
+  <div id="confirmModal" class="confirm-modal-bg" style="display: none;" role="alertdialog" aria-modal="true" aria-labelledby="confirmModalMessage">
+    <div class="confirm-modal">
+      <p id="confirmModalMessage"></p>
+      <button id="confirmModalYes">Sim</button>
+      <button id="confirmModalNo" class="secondary">Cancelar</button>
     </div>
   </div>
 
   <script>
-    // Tema Escuro
-    function toggleTheme() {
-      document.body.classList.toggle('dark');
-      localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light');
-    }
-    if (localStorage.getItem('theme') === 'dark') document.body.classList.add('dark');
+    // --- CONFIGURAÇÃO ---
+    const BACKEND_URL = "https://keygenx-ce8h.onrender.com"; // Defina a URL do backend
 
-    // Toast Notification
-    function showToast(msg, type = 'info') {
-      let toast = document.getElementById('toast');
-      if (!toast) {
-        toast = document.createElement('div');
-        toast.id = 'toast';
-        toast.className = 'toast';
-        document.body.appendChild(toast);
-      }
-      toast.textContent = msg;
-      toast.className = 'toast show ' + type;
-      setTimeout(() => { toast.className = 'toast'; }, 3000);
-    }
+    // --- ELEMENTOS DO DOM ---
+    const themeToggleButton = document.getElementById('themeToggle');
+    const loginModal = document.getElementById('loginModal');
+    const loginForm = document.getElementById('loginForm');
+    const btnLogin = document.getElementById('btnLogin');
+    const adminSecretModalInput = document.getElementById('adminSecretModal');
+    const loginErrorDiv = document.getElementById('loginError');
+    const btnLogout = document.getElementById('btnLogout');
+    const outputDiv = document.getElementById('output');
+    const keysListDisplayDiv = document.getElementById('keysListDisplay');
+    const keyCountInput = document.getElementById('keyCount');
+    const deleteKeyInput = document.getElementById('deleteKey');
+    const currentYearSpan = document.getElementById('currentYear');
 
-    // Modal de confirmação
-    function confirmModal(msg, onConfirm) {
-      let bg = document.createElement('div');
-      bg.className = 'confirm-modal-bg';
-      bg.innerHTML = `<div class='confirm-modal'><p>${msg}</p><button id='confirmYes'>Sim</button> <button id='confirmNo' class='secondary'>Cancelar</button></div>`;
-      document.body.appendChild(bg);
-      document.getElementById('confirmYes').onclick = () => { document.body.removeChild(bg); onConfirm(); };
-      document.getElementById('confirmNo').onclick = () => { document.body.removeChild(bg); };
-    }
+    const btnGerar = document.getElementById('btnGerar');
+    const btnVer = document.getElementById('btnVer');
+    const btnExcluir = document.getElementById('btnExcluir');
+    const btnExcluirTodas = document.getElementById('btnExcluirTodas');
+    
+    const toastElement = document.getElementById('toast');
+    let toastTimeout;
 
-    // Filtro de chaves
-    function filterKeys() {
-      const q = document.getElementById('keyFilter').value.toLowerCase();
-      document.querySelectorAll('.key-list li').forEach(li => {
-        li.style.display = li.textContent.toLowerCase().includes(q) ? '' : 'none';
-      });
-    }
+    const confirmModalElement = document.getElementById('confirmModal');
+    const confirmModalMessageP = document.getElementById('confirmModalMessage');
+    const confirmModalYesBtn = document.getElementById('confirmModalYes');
+    const confirmModalNoBtn = document.getElementById('confirmModalNo');
+    let currentConfirmCallback = null;
 
-    // Exportação CSV
-    function exportKeysCSV(keys, filename = 'chaves.csv') {
-      const csv = keys.map(k => k.replaceAll(';', ' ')).join('\n');
-      const blob = new Blob([csv], {type: 'text/csv'});
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-    }
+    // --- ESTADO DA APLICAÇÃO ---
+    let adminSecret = ''; // Guarda a senha em memória enquanto a página estiver aberta
 
-    // Dashboard simples
-    function updateDashboard(available, used) {
-      document.getElementById('statTotal').textContent = available.length + used.length;
-      document.getElementById('statDisp').textContent = available.length;
-      document.getElementById('statUsed').textContent = used.length;
-    }
-
-    // Integrar com painel existente
-    window.addEventListener('DOMContentLoaded', () => {
-      document.getElementById('themeToggle').onclick = toggleTheme;
-      document.getElementById('keyFilter').oninput = filterKeys;
-      // Exportar disponíveis
-      document.getElementById('exportDisp').onclick = () => {
-        const keys = Array.from(document.querySelectorAll('#dispList li')).map(li => li.textContent.trim());
-        exportKeysCSV(keys, 'chaves_disponiveis.csv');
-      };
-      // Exportar usadas
-      document.getElementById('exportUsed').onclick = () => {
-        const keys = Array.from(document.querySelectorAll('#usedList li')).map(li => li.textContent.trim());
-        exportKeysCSV(keys, 'chaves_usadas.csv');
-      };
-    });
-  </script>
-  <script>
-    // Defina a URL do backend como constante, não visível no HTML
-    const BACKEND_URL = "https://keygenx-ce8h.onrender.com";
-
-    // Guarda a senha em memória enquanto a página estiver aberta
-    let adminSecret = '';
-
-    function setLoading(btn, loading) {
-      if (loading) {
-        btn.disabled = true;
-        if (!btn.querySelector('.spinner')) {
-          const sp = document.createElement('span');
-          sp.className = 'spinner';
-          btn.appendChild(sp);
+    // --- FUNÇÕES UTILITÁRIAS ---
+    function setLoading(buttonElement, isLoading) {
+      if (isLoading) {
+        buttonElement.disabled = true;
+        if (!buttonElement.querySelector('.spinner')) {
+          const spinnerSpan = document.createElement('span');
+          spinnerSpan.className = 'spinner';
+          buttonElement.appendChild(spinnerSpan);
         }
       } else {
-        btn.disabled = false;
-        const sp = btn.querySelector('.spinner');
-        if (sp) sp.remove();
+        buttonElement.disabled = false;
+        const spinnerSpan = buttonElement.querySelector('.spinner');
+        if (spinnerSpan) spinnerSpan.remove();
       }
     }
 
-    function showOutput(type, msg, timeout=0) {
-      const out = document.getElementById('output');
-      out.className = type;
-      out.textContent = msg;
+    function showOutput(type, message, timeout = 0) {
+      outputDiv.className = `status-message ${type}`; // Adiciona 'status-message' para estilização base
+      outputDiv.textContent = message;
       if (timeout > 0) {
         setTimeout(() => {
-          out.className = '';
-          out.textContent = 'Aguardando ação...';
+          outputDiv.className = 'status-message';
+          outputDiv.textContent = 'Aguardando ação...';
         }, timeout);
       }
     }
 
-    // Copiar chave
-    function copyKey(key, btn) {
-      navigator.clipboard.writeText(key).then(() => {
-        btn.textContent = '✔️';
-        setTimeout(() => { btn.textContent = '📋'; }, 1200);
+    function copyKeyToClipboard(keyText, buttonElement) {
+      navigator.clipboard.writeText(keyText).then(() => {
+        const originalContent = buttonElement.textContent;
+        buttonElement.textContent = '✔️';
+        setTimeout(() => { buttonElement.textContent = originalContent; }, 1200);
+        showToast('Chave copiada!', 'success');
+      }).catch(err => {
+        showToast('Erro ao copiar.', 'error');
+        console.error('Erro ao copiar chave:', err);
       });
     }
+    
+    function showToast(message, type = 'info') { // type: 'info', 'success', 'error'
+        if (toastTimeout) clearTimeout(toastTimeout);
+        
+        toastElement.textContent = message;
+        toastElement.className = `toast show ${type}`; // Adiciona classe de tipo
+        
+        toastTimeout = setTimeout(() => {
+            toastElement.className = 'toast';
+        }, 3000);
+    }
 
-    // Fetch padrão
-    async function fetchData(endpoint, params = {}, method = 'GET') {
-      const backendUrl = BACKEND_URL.replace(/\/+$/, '');
-      const output = document.getElementById('output');
+    function showConfirmModal(message, onConfirm) {
+        confirmModalMessageP.textContent = message;
+        currentConfirmCallback = onConfirm;
+        confirmModalElement.style.display = 'flex';
+        confirmModalYesBtn.focus();
+    }
 
-      if (!adminSecret) {
-        showOutput('error', '⚠️ Faça login primeiro.');
-        return null;
+    confirmModalYesBtn.onclick = () => {
+        confirmModalElement.style.display = 'none';
+        if (currentConfirmCallback) currentConfirmCallback();
+        currentConfirmCallback = null;
+    };
+
+    confirmModalNoBtn.onclick = () => {
+        confirmModalElement.style.display = 'none';
+        currentConfirmCallback = null;
+    };
+
+    // --- LÓGICA DE AUTENTICAÇÃO E PAINEL ---
+    function setPanelEnabled(enabled) {
+      [btnGerar, btnVer, btnExcluir, btnExcluirTodas, deleteKeyInput, keyCountInput].forEach(el => {
+        if (el) el.disabled = !enabled;
+      });
+      btnLogout.style.display = enabled ? 'inline-flex' : 'none'; // inline-flex para consistência com botões
+    }
+
+    async function handleLogin() {
+      const password = adminSecretModalInput.value.trim();
+      if (!password) {
+        loginErrorDiv.textContent = 'Digite a senha de admin.';
+        loginErrorDiv.style.display = 'block';
+        return;
       }
-      params.secret = adminSecret;
-      const url = `${backendUrl}/${endpoint}?${new URLSearchParams(params).toString()}`;
 
-      showOutput('', '⏳ Processando...');
+      setLoading(btnLogin, true);
+      loginErrorDiv.style.display = 'none';
 
       try {
-        const res = await fetch(url, { method, cache: 'no-store' });
-        const data = await res.json();
+        // Testar a senha com endpoint simples (ex: admin_view_keys)
+        const url = `${BACKEND_URL.replace(/\/+$/, '')}/admin_view_keys?secret=${encodeURIComponent(password)}`;
+        const response = await fetch(url, { method: 'GET', cache: 'no-store' });
+        const data = await response.json();
 
-        showOutput(data.status === 'success' ? 'success' : 'error',
-          (data.status === 'success' ? '✅ ' : '❌ ') + (data.message || (data.status === 'success' ? 'Sucesso.' : 'Erro.')),
-          data.status === 'success' ? 2000 : 0
+        if (data.status === 'success') {
+          adminSecret = password;
+          loginModal.style.display = 'none';
+          setPanelEnabled(true);
+          showToast('Login bem-sucedido!', 'success');
+          viewKeys(); // Carregar chaves após login
+        } else {
+          loginErrorDiv.textContent = data.message || 'Senha incorreta.';
+          loginErrorDiv.style.display = 'block';
+          setPanelEnabled(false);
+        }
+      } catch (error) {
+        loginErrorDiv.textContent = 'Erro de conexão ao tentar logar.';
+        loginErrorDiv.style.display = 'block';
+        setPanelEnabled(false);
+        console.error("Erro no login:", error);
+      }
+      setLoading(btnLogin, false);
+    }
+
+    function handleLogout() {
+      adminSecret = '';
+      setPanelEnabled(false);
+      loginModal.style.display = 'flex';
+      adminSecretModalInput.value = '';
+      loginErrorDiv.style.display = 'none';
+      keysListDisplayDiv.innerHTML = 'Nenhuma chave carregada ainda.';
+      showOutput('', 'Sessão encerrada. Aguardando ação...');
+      showToast('Você saiu.', 'info');
+    }
+
+    // --- API CALLS ---
+    async function fetchDataFromAPI(endpoint, params = {}, method = 'GET', buttonToLoad = null) {
+      const backendUrl = BACKEND_URL.replace(/\/+$/, '');
+      if (!adminSecret) {
+        showOutput('error', '⚠️ Faça login primeiro.');
+        handleLogout(); // Forçar logout se o segredo sumir
+        return null;
+      }
+      params.secret = adminSecret; // Adiciona o segredo a todos os requests
+
+      const queryParams = new URLSearchParams(params).toString();
+      const url = `${backendUrl}/${endpoint}${method === 'GET' && queryParams ? '?' + queryParams : ''}`;
+      
+      const fetchOptions = {
+        method,
+        cache: 'no-store',
+        headers: {}
+      };
+
+      if (method !== 'GET') {
+        fetchOptions.headers['Content-Type'] = 'application/json'; // Assumindo JSON para POST/DELETE
+        fetchOptions.body = JSON.stringify(params); // Enviar params no body para POST/DELETE
+      }
+      
+      showOutput('', '⏳ Processando...');
+      if (buttonToLoad) setLoading(buttonToLoad, true);
+
+      try {
+        const response = await fetch(url, fetchOptions);
+        if (!response.ok) { // Trata erros HTTP como 401, 403, 500 etc.
+            let errorMsg = `Erro HTTP ${response.status}: ${response.statusText}`;
+            try {
+                const errorData = await response.json();
+                errorMsg = errorData.message || errorMsg;
+                if (response.status === 401 || response.status === 403) { // Unauthorized or Forbidden
+                    showToast('Sessão expirada ou inválida. Faça login novamente.', 'error');
+                    handleLogout();
+                }
+            } catch (e) { /* não conseguiu parsear JSON, usa statusText */ }
+            showOutput('error', `❌ ${errorMsg}`);
+            return null;
+        }
+        const data = await response.json();
+
+        showOutput(
+          data.status === 'success' ? 'success' : 'error',
+          (data.status === 'success' ? '✅ ' : '❌ ') + (data.message || (data.status === 'success' ? 'Operação concluída.' : 'Ocorreu um erro.')),
+          data.status === 'success' ? 3000 : 5000
         );
         return data;
       } catch (err) {
-        showOutput('error', '❌ Erro de conexão: ' + err.message);
+        showOutput('error', '❌ Erro de conexão com o servidor: ' + err.message);
+        console.error("Fetch error:", err);
         return null;
+      } finally {
+        if (buttonToLoad) setLoading(buttonToLoad, false);
       }
     }
 
-    // Gerar chaves
+    // --- AÇÕES DO PAINEL ---
     async function generateKeys() {
-      const btn = document.getElementById('btnGerar');
-      setLoading(btn, true);
-      const count = parseInt(document.getElementById('keyCount').value, 10);
+      const count = parseInt(keyCountInput.value, 10);
       if (isNaN(count) || count < 1 || count > 100) {
-        showOutput('error', '❌ Quantidade inválida.');
-        setLoading(btn, false);
+        showOutput('error', '❌ Quantidade inválida. Deve ser entre 1 e 100.');
         return;
       }
-      await fetchData('admin_generate_keys', { count });
-      setLoading(btn, false);
-      viewKeys();
+      const result = await fetchDataFromAPI('admin_generate_keys', { count }, 'POST', btnGerar);
+      if (result && result.status === 'success') {
+        viewKeys(); // Atualiza a lista de chaves
+        if (result.data && result.data.generated_keys) {
+          showToast(`${result.data.generated_keys.length} chaves geradas!`, 'success');
+        } else {
+          showToast(`Chaves geradas!`, 'success');
+        }
+      }
     }
 
-    // Visualizar chaves
     async function viewKeys() {
-      const btn = document.getElementById('btnVer');
-      setLoading(btn, true);
-      const keysList = document.getElementById('keysListDisplay');
-      keysList.innerHTML = '⏳ Carregando...';
-      const result = await fetchData('admin_view_keys');
-      setLoading(btn, false);
+      keysListDisplayDiv.innerHTML = '⏳ Carregando chaves...';
+      const result = await fetchDataFromAPI('admin_view_keys', {}, 'GET', btnVer);
 
       if (!result || result.status !== 'success' || !result.data) {
-        keysList.innerHTML = '<p class="error">Erro ao carregar chaves.</p>';
+        keysListDisplayDiv.innerHTML = '<p class="status-message error">Erro ao carregar chaves ou nenhuma chave encontrada.</p>';
         return;
       }
 
       const { available_keys = [], used_keys = [] } = result.data;
       let html = `<h3>🔑 Disponíveis (${available_keys.length}):</h3><ul class="key-list">`;
-      html += available_keys.map(k => 
-        `<li>${k}<button class="copy-btn" aria-label="Copiar chave" onclick="copyKey('${k}', this)">📋</button></li>`
-      ).join('') || '<li>Nenhuma chave disponível.</li>';
+      html += available_keys.length > 0 
+        ? available_keys.map(key => `<li>${key}<button class="copy-btn" type="button" aria-label="Copiar chave ${key}" onclick="copyKeyToClipboard('${key}', this)">📋</button></li>`).join('')
+        : '<li>Nenhuma chave disponível.</li>';
       html += '</ul>';
 
       html += `<h3 style="margin-top:20px;">📦 Usadas (${used_keys.length}):</h3><ul class="key-list">`;
-      html += used_keys.map(k => 
-        `<li>${k}<button class="copy-btn" aria-label="Copiar chave" onclick="copyKey('${k}', this)">📋</button></li>`
-      ).join('') || '<li>Nenhuma chave usada.</li>';
+      html += used_keys.length > 0
+        ? used_keys.map(key => `<li>${key}<button class="copy-btn" type="button" aria-label="Copiar chave ${key}" onclick="copyKeyToClipboard('${key}', this)">📋</button></li>`).join('')
+        : '<li>Nenhuma chave usada.</li>';
       html += '</ul>';
 
-      keysList.innerHTML = html;
+      keysListDisplayDiv.innerHTML = html;
     }
 
-    // Excluir chave específica
     async function deleteSpecificKey() {
-      const btn = document.getElementById('btnExcluir');
-      setLoading(btn, true);
-      const key = document.getElementById('deleteKey').value.trim();
-      if (!key) {
+      const keyToDelete = deleteKeyInput.value.trim();
+      if (!keyToDelete) {
         showOutput('error', '❌ Digite a chave que deseja excluir.');
-        setLoading(btn, false);
         return;
       }
-      const result = await fetchData('admin_delete_key', { key }, 'DELETE');
-      setLoading(btn, false);
-      if (result?.status === 'success') viewKeys();
-    }
-
-    // Excluir todas as chaves
-    async function deleteAllKeys() {
-      const btn = document.getElementById('btnExcluirTodas');
-      if (!confirm("⚠️ Tem certeza que deseja excluir TODAS as chaves? Essa ação não pode ser desfeita.")) return;
-      setLoading(btn, true);
-      const result = await fetchData('admin_delete_all_keys', {}, 'DELETE');
-      setLoading(btn, false);
-      if (result?.status === 'success') viewKeys();
-    }
-
-    // Modal de login
-    const loginModal = document.getElementById('loginModal');
-    const btnLogin = document.getElementById('btnLogin');
-    const adminSecretModal = document.getElementById('adminSecretModal');
-    const loginError = document.getElementById('loginError');
-    const btnLogout = document.getElementById('btnLogout');
-
-    function setPanelEnabled(enabled) {
-      ['btnGerar','btnVer','btnExcluir','btnExcluirTodas','deleteKey','keyCount'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.disabled = !enabled;
-      });
-      btnLogout.style.display = enabled ? '' : 'none';
-    }
-
-    async function doLogin() {
-      const pwd = adminSecretModal.value.trim();
-      if (!pwd) {
-        loginError.textContent = 'Digite a senha de admin.';
-        loginError.style.display = 'block';
-        return;
-      }
-      // Testar a senha com endpoint simples
-      btnLogin.disabled = true;
-      loginError.style.display = 'none';
-      try {
-        const url = `${BACKEND_URL.replace(/\/+$/, '')}/admin_view_keys?secret=${encodeURIComponent(pwd)}`;
-        const res = await fetch(url, { method: 'GET', cache: 'no-store' });
-        const data = await res.json();
-        if (data.status === 'success') {
-          adminSecret = pwd;
-          loginModal.style.display = 'none';
-          setPanelEnabled(true);
-          btnLogout.style.display = '';
-          viewKeys();
-        } else {
-          loginError.textContent = 'Senha incorreta.';
-          loginError.style.display = 'block';
-          setPanelEnabled(false);
+      showConfirmModal(`Tem certeza que deseja excluir a chave "${keyToDelete}"?`, async () => {
+        const result = await fetchDataFromAPI('admin_delete_key', { key: keyToDelete }, 'DELETE', btnExcluir);
+        if (result && result.status === 'success') {
+          viewKeys(); // Atualiza a lista
+          deleteKeyInput.value = ''; // Limpa o campo
+          showToast(`Chave "${keyToDelete}" excluída.`, 'success');
         }
-      } catch (e) {
-        loginError.textContent = 'Erro de conexão.';
-        loginError.style.display = 'block';
-        setPanelEnabled(false);
+      });
+    }
+    
+    // Wrapper para deleteAllKeys para usar o modal de confirmação
+    function deleteAllKeysConfirm() {
+        showConfirmModal(
+            "⚠️ Tem certeza que deseja excluir TODAS as chaves? Essa ação não pode ser desfeita.",
+            async () => { // Esta é a callback onConfirm
+                const result = await fetchDataFromAPI('admin_delete_all_keys', {}, 'DELETE', btnExcluirTodas);
+                if (result && result.status === 'success') {
+                    viewKeys(); // Atualiza a lista
+                    showToast('Todas as chaves foram excluídas!', 'success');
+                }
+            }
+        );
+    }
+
+    // --- TEMA ---
+    function toggleTheme() {
+      document.body.classList.toggle('dark');
+      const currentTheme = document.body.classList.contains('dark') ? 'dark' : 'light';
+      localStorage.setItem('theme', currentTheme);
+      themeToggleButton.textContent = currentTheme === 'dark' ? '☀️' : '🌓';
+      themeToggleButton.setAttribute('aria-label', currentTheme === 'dark' ? 'Alternar para tema claro' : 'Alternar para tema escuro');
+    }
+
+    function applyInitialTheme() {
+      const savedTheme = localStorage.getItem('theme');
+      if (savedTheme === 'dark') {
+        document.body.classList.add('dark');
       }
-      btnLogin.disabled = false;
+      // Atualiza o ícone do botão do tema
+      themeToggleButton.textContent = document.body.classList.contains('dark') ? '☀️' : '🌓';
+      themeToggleButton.setAttribute('aria-label', document.body.classList.contains('dark') ? 'Alternar para tema claro' : 'Alternar para tema escuro');
+
     }
 
-    btnLogin.onclick = doLogin;
-    adminSecretModal.addEventListener('keyup', function(e){
-      if (e.key === 'Enter') doLogin();
-    });
-    btnLogout.onclick = function() {
-      adminSecret = '';
+    // --- INICIALIZAÇÃO ---
+    document.addEventListener('DOMContentLoaded', () => {
+      applyInitialTheme();
+      currentYearSpan.textContent = new Date().getFullYear();
+      
+      themeToggleButton.onclick = toggleTheme;
+      
+      loginForm.addEventListener('submit', (event) => {
+        event.preventDefault();
+        handleLogin();
+      });
+      
+      btnLogout.onclick = handleLogout;
+
+      // Inicialização: bloquear painel até login
       setPanelEnabled(false);
-      loginModal.style.display = 'flex';
-      adminSecretModal.value = '';
-      loginError.style.display = 'none';
-      showOutput('', 'Aguardando ação...');
-    };
+      loginModal.style.display = 'flex'; // Mostrar modal de login ao carregar
 
-    // Inicialização: bloquear painel até login
-    setPanelEnabled(false);
-    loginModal.style.display = 'flex';
-
-    // HTTPS warning
-    if (window.location.protocol !== "https:") {
-      showOutput('error', '⚠️ Atenção: Use HTTPS para maior segurança.');
-    }
+      // Aviso HTTPS
+      if (window.location.protocol !== "https:") {
+        showToast('⚠️ Atenção: Use HTTPS para maior segurança.', 'error');
+      }
+    });
   </script>
 </body>
 </html>
