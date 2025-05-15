@@ -13,8 +13,8 @@
       --secondary: #6c757d;
       --danger: crimson;
       --success: #28a745;
-      --error: #dc3545; /* Usado para erros e toasts de erro */
-      --info: #17a2b8; /* Cor para toasts informativos, se desejar */
+      --error: #dc3545; 
+      --info: #17a2b8; 
       --shadow: 0 4px 24px rgba(0,0,0,0.12);
     }
     body.dark {
@@ -65,7 +65,7 @@
       margin-top: 15px;
       margin-bottom: 5px;
       font-weight: bold;
-      text-align: left; /* Alinhar labels à esquerda */
+      text-align: left; 
     }
     input[type="text"], input[type="number"], input[type="password"] {
       width: 100%;
@@ -115,7 +115,7 @@
     button.danger:hover:not([disabled]) { background-color: darkred; }
     body.dark button.danger:hover:not([disabled]) { background-color: #c82333; }
     
-    .status-message { min-height: 1.2em; } /* Para evitar pulos de layout */
+    .status-message { min-height: 1.2em; } 
     .status-message.success { color: var(--success); font-weight: bold; }
     .status-message.error { color: var(--error); font-weight: bold; }
 
@@ -271,7 +271,6 @@
         border: 0;
     }
 
-
     @media (max-width: 600px) {
       .container { padding: 20px 15px; margin: 20px auto; }
       h1 { font-size: 1.5em; }
@@ -291,10 +290,8 @@
     </h1>
 
     <div id="loginModal" style="position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.18);display:flex;align-items:center;justify-content:center;z-index:1000;">
-      <!-- Correção de Acessibilidade: Adicionado campo de username (oculto) -->
       <form id="loginForm" style="background:var(--panel);padding:32px 28px 22px 28px;border-radius:8px;box-shadow:var(--shadow);min-width:320px;max-width:90vw;text-align:center;">
         <h2 style="color:var(--primary);margin-top:0;" id="loginModalTitle">Login Admin</h2>
-         <!-- Campo de usuário oculto para acessibilidade e gerenciadores de senha -->
         <label for="adminUsernameModal" class="visually-hidden">Nome de Usuário (Admin):</label>
         <input type="text" id="adminUsernameModal" name="username" autocomplete="username" class="visually-hidden" value="admin">
         
@@ -338,7 +335,7 @@
     </div>
 
     <div class="footer">
-      © <span id="currentYear"></span> Painel Admin | Feito por Luke | Versão 1.3
+      © <span id="currentYear"></span> Painel Admin | Feito por Luke | Versão 1.4
     </div>
   </div>
 
@@ -362,7 +359,6 @@
     const loginForm = document.getElementById('loginForm');
     const btnLogin = document.getElementById('btnLogin');
     const adminSecretModalInput = document.getElementById('adminSecretModal');
-    // const adminUsernameModalInput = document.getElementById('adminUsernameModal'); // Se precisar interagir com ele
     const loginErrorDiv = document.getElementById('loginError');
     const btnLogout = document.getElementById('btnLogout');
     const outputDiv = document.getElementById('output');
@@ -477,6 +473,7 @@
       loginErrorDiv.style.display = 'none';
 
       try {
+        // Login usa /admin_view_keys que é GET e espera 'secret' na query (compatível com server.js original)
         const url = `${BACKEND_URL.replace(/\/+$/, '')}/admin_view_keys?secret=${encodeURIComponent(password)}`;
         const response = await fetch(url, { method: 'GET', cache: 'no-store' });
         const data = await response.json();
@@ -514,7 +511,7 @@
       showToast('Você saiu.', 'info');
     }
 
-    // --- API CALLS (CORRIGIDO PARA DELETE 403) ---
+    // --- API CALLS (AJUSTADO PARA O server.js ORIGINAL) ---
     async function fetchDataFromAPI(endpoint, params = {}, method = 'GET', buttonToLoad = null) {
       const backendUrl = BACKEND_URL.replace(/\/+$/, '');
       
@@ -524,46 +521,42 @@
         return null;
       }
 
+      // Parâmetros sempre na query string para o server.js original
       const localParams = { ...params };
       localParams.secret = adminSecret; 
 
       let url = `${backendUrl}/${endpoint}`;
-      
-      if (method === 'GET' || method === 'DELETE') { 
-        const queryParamsString = new URLSearchParams(localParams).toString();
-        if (queryParamsString) {
-          url += `?${queryParamsString}`;
-        }
+      const queryParamsString = new URLSearchParams(localParams).toString();
+      if (queryParamsString) {
+        url += `?${queryParamsString}`;
       }
       
       const fetchOptions = {
-        method,
+        method, // O método será GET para /admin_generate_keys conforme chamada
         cache: 'no-store',
         headers: {}
+        // NENHUM CORPO (BODY) para as rotas de admin GET/DELETE do server.js original
       };
-
-      if (method === 'POST' || method === 'PUT' || method === 'DELETE') {
-        fetchOptions.headers['Content-Type'] = 'application/json';
-        fetchOptions.body = JSON.stringify(localParams); 
-      }
       
       if (buttonToLoad) setLoading(buttonToLoad, true);
       showOutput('', '⏳ Processando...');
 
+      let response; 
       try {
-        const response = await fetch(url, fetchOptions); 
+        response = await fetch(url, fetchOptions); 
 
-        if (!response.ok) {
+        if (!response.ok) { 
             let errorMsg = `Erro HTTP ${response.status}: ${response.statusText}`;
-            let responseDataOnError = null;
             try {
-                responseDataOnError = await response.json();
-                errorMsg = responseDataOnError.message || errorMsg;
-                console.error(`Backend error for ${method} ${url}: Status ${response.status}`, responseDataOnError); 
-            } catch (e) { 
-                const errorBodyText = await response.text();
-                console.error(`Backend error for ${method} ${url}: Status ${response.status}. Body:`, errorBodyText);
-                errorMsg = `${errorMsg} - ${errorBodyText.substring(0,100)}`;
+                // Tenta ler o corpo da resposta de erro como JSON. Isso consome o corpo.
+                const errorData = await response.json(); // Consome o corpo UMA VEZ
+                errorMsg = errorData.message || errorMsg;
+                console.error(`Backend error for ${method} ${url}: Status ${response.status}. JSON Body:`, errorData);
+            } catch (jsonParseError) {
+                // Se não for JSON, ou se .json() falhou por outro motivo (ex: corpo vazio)
+                // O corpo já pode ter sido consumido pela tentativa de .json().
+                // Se a resposta não foi JSON, o statusText já é a melhor info aqui.
+                console.warn(`Failed to parse error response as JSON for ${method} ${url}. Status: ${response.status}. StatusText: ${response.statusText}. Error:`, jsonParseError);
             }
 
             if (response.status === 401 || response.status === 403) { 
@@ -573,7 +566,9 @@
             showOutput('error', `❌ ${errorMsg}`);
             return null;
         }
-        const data = await response.json();
+        
+        // Se response.ok é true, o corpo é lido aqui como JSON
+        const data = await response.json(); 
 
         showOutput(
           data.status === 'success' ? 'success' : 'error',
@@ -581,9 +576,9 @@
           data.status === 'success' ? 3000 : 5000
         );
         return data;
-      } catch (err) {
-        showOutput('error', '❌ Erro de conexão com o servidor: ' + err.message);
-        console.error(`Fetch error for ${method} ${url}:`, err);
+      } catch (networkOrOtherError) { 
+        showOutput('error', '❌ Erro de conexão com o servidor: ' + networkOrOtherError.message);
+        console.error(`Fetch (network/other) error for ${method} ${url}:`, networkOrOtherError);
         return null;
       } finally {
         if (buttonToLoad) setLoading(buttonToLoad, false);
@@ -598,19 +593,26 @@
         keyCountInput.focus();
         return;
       }
-      const result = await fetchDataFromAPI('admin_generate_keys', { count }, 'POST', btnGerar);
+      // AJUSTADO: Método GET e interpretação da resposta para server.js original
+      const result = await fetchDataFromAPI('admin_generate_keys', { count }, 'GET', btnGerar);
       if (result && result.status === 'success') {
         viewKeys(); 
-        if (result.data && result.data.generated_keys) {
-          showToast(`${result.data.generated_keys.length} chaves geradas!`, 'success');
+        // Resposta do server.js original é result.keys (array direto)
+        if (result.keys && Array.isArray(result.keys)) {
+          showToast(`${result.keys.length} chaves geradas! (Solicitadas: ${count})`, 'success');
+          // Mensagem mais informativa devido à limitação do backend
+          if (result.keys.length < count) {
+            showOutput('success', `✅ ${result.keys.length} chaves geradas. O limite diário por IP no backend pode ter sido atingido.`, 5000);
+          }
         } else {
-          showToast(`Chaves geradas!`, 'success');
+          showToast(`Chaves geradas (verifique a lista).`, 'success');
         }
       }
     }
 
     async function viewKeys() {
       keysListDisplayDiv.innerHTML = '⏳ Carregando chaves...';
+      // server.js original retorna { status: 'success', data: { /* conteúdo de keys.json */ } }
       const result = await fetchDataFromAPI('admin_view_keys', {}, 'GET', btnVer);
 
       if (!result || result.status !== 'success' || !result.data) {
@@ -618,6 +620,7 @@
         return;
       }
 
+      // result.data deve ter available_keys e used_keys diretamente do keys.json
       const { available_keys = [], used_keys = [] } = result.data;
       let html = `<h3>🔑 Disponíveis (${available_keys.length}):</h3><ul class="key-list">`;
       html += available_keys.length > 0 
@@ -642,6 +645,7 @@
         return;
       }
       showConfirmModal(`Tem certeza que deseja excluir a chave "${keyToDelete}"?`, async () => {
+        // server.js original usa DELETE com params na query
         const result = await fetchDataFromAPI('admin_delete_key', { key: keyToDelete }, 'DELETE', btnExcluir);
         if (result && result.status === 'success') {
           viewKeys(); 
@@ -655,6 +659,7 @@
         showConfirmModal(
             "⚠️ Tem certeza que deseja excluir TODAS as chaves? Essa ação não pode ser desfeita.",
             async () => { 
+                // server.js original usa DELETE com params na query
                 const result = await fetchDataFromAPI('admin_delete_all_keys', {}, 'DELETE', btnExcluirTodas);
                 if (result && result.status === 'success') {
                     viewKeys(); 
@@ -698,7 +703,7 @@
 
       setPanelEnabled(false);
       loginModal.style.display = 'flex'; 
-      adminSecretModalInput.focus(); // Foco no campo de senha ao carregar modal
+      adminSecretModalInput.focus(); 
 
       if (window.location.protocol !== "https:") {
         showToast('⚠️ Atenção: Use HTTPS para maior segurança.', 'info');
