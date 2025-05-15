@@ -7,6 +7,238 @@
   <style>
     body {
       font-family: 'Segoe UI', Arial, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      margin: 0;
+      min-height: 100vh;
+    }
+    :root {
+      --bg: #f0f2f5;
+      --text: #333;
+      --panel: #fff;
+      --primary: #007bff;
+      --secondary: #6c757d;
+      --danger: crimson;
+      --success: #28a745;
+      --error: #dc3545;
+      --shadow: 0 4px 24px rgba(0,0,0,0.12);
+    }
+    body.dark {
+      --bg: #181c24;
+      --text: #e6e6e6;
+      --panel: #232837;
+      --primary: #3ea6ff;
+      --secondary: #444c5e;
+      --danger: #ff3b3b;
+      --success: #38e38a;
+      --error: #ff6b6b;
+      --shadow: 0 4px 24px rgba(0,0,0,0.36);
+    }
+    .container {
+      max-width: 700px;
+      margin: 40px auto 0 auto;
+      background-color: var(--panel);
+      padding: 30px 28px 20px 28px;
+      border-radius: 10px;
+      box-shadow: var(--shadow);
+      position: relative;
+    }
+    .logo-admin {
+      width: 44px;
+      vertical-align: middle;
+      margin-right: 8px;
+    }
+    h1, h2 {
+      color: var(--primary);
+      border-bottom: 2px solid var(--primary);
+      padding-bottom: 10px;
+      margin-top: 0;
+    }
+    label {
+      display: block;
+      margin-top: 15px;
+      font-weight: bold;
+    }
+    input[type="text"], input[type="number"], input[type="password"] {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 10px;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+      font-size: 1rem;
+      box-sizing: border-box;
+      background: var(--panel);
+      color: var(--text);
+    }
+    input[readonly] {
+      background: #e9ecef;
+      color: #444;
+      font-family: monospace;
+    }
+    button {
+      background-color: var(--primary);
+      color: white;
+      padding: 10px 16px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-top: 10px;
+      font-size: 1rem;
+      transition: background 0.15s;
+      min-width: 110px;
+      position: relative;
+    }
+    button[disabled] {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+    .secondary {
+      background-color: var(--secondary);
+    }
+    .secondary:hover:not([disabled]) {
+      background-color: #545b62;
+    }
+    .danger {
+      background-color: var(--danger);
+    }
+    .danger:hover:not([disabled]) {
+      background-color: darkred;
+    }
+    .success {
+      color: var(--success);
+      font-weight: bold;
+    }
+    .error {
+      color: var(--error);
+      font-weight: bold;
+    }
+    .key-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    .key-list li {
+      background: #e9ecef;
+      margin-bottom: 5px;
+      padding: 8px 8px 8px 16px;
+      border-radius: 3px;
+      font-family: monospace;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: var(--text);
+    }
+    .copy-btn {
+      background: transparent;
+      border: none;
+      color: var(--primary);
+      cursor: pointer;
+      font-size: 1.1em;
+      margin-left: 12px;
+      padding: 2px 4px;
+      border-radius: 3px;
+      transition: background 0.15s;
+    }
+    .copy-btn:hover {
+      background: #dbeafe;
+    }
+    #output, .keys-container {
+      margin-top: 20px;
+      padding: 12px;
+      background: #f8f9fa;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      min-height: 35px;
+      font-size: 1.05em;
+      color: var(--text);
+    }
+    .toast {
+      position: fixed;
+      bottom: 32px;
+      right: 32px;
+      background: var(--panel);
+      color: var(--text);
+      border-left: 6px solid var(--primary);
+      box-shadow: var(--shadow);
+      padding: 16px 24px;
+      border-radius: 6px;
+      font-size: 1.1em;
+      z-index: 9999;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s, transform 0.3s;
+      transform: translateY(40px);
+    }
+    .toast.show {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateY(0);
+    }
+    .theme-toggle {
+      position: absolute;
+      top: 24px;
+      right: 24px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 1.5em;
+      color: var(--primary);
+      transition: color 0.2s;
+    }
+    .theme-toggle:hover {
+      color: var(--danger);
+    }
+    .dashboard {
+      display: flex;
+      gap: 32px;
+      margin: 22px 0 18px 0;
+      justify-content: flex-start;
+      flex-wrap: wrap;
+    }
+    .dashboard .stat {
+      background: #e9ecef;
+      color: var(--text);
+      border-radius: 6px;
+      padding: 14px 22px;
+      min-width: 120px;
+      font-size: 1.1em;
+      text-align: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+    }
+    .confirm-modal-bg {
+      position: fixed;
+      top: 0; left: 0; width: 100vw; height: 100vh;
+      background: rgba(0,0,0,0.18);
+      z-index: 2000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .confirm-modal {
+      background: var(--panel);
+      color: var(--text);
+      padding: 30px 36px 22px 36px;
+      border-radius: 10px;
+      box-shadow: var(--shadow);
+      min-width: 320px;
+      max-width: 90vw;
+      text-align: center;
+    }
+    .footer {
+      margin-top: 30px;
+      text-align: center;
+      color: #888;
+      font-size: 0.97em;
+      padding-bottom: 10px;
+    }
+    @media (max-width: 600px) {
+      .container { padding: 10px 2vw; }
+      h1, h2 { font-size: 1.2em;}
+      .dashboard { flex-direction: column; gap: 12px; }
+    }
+  </style>
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
       background-color: #f0f2f5;
       color: #333;
       margin: 0;
@@ -200,6 +432,81 @@
     </div>
   </div>
 
+  <script>
+    // Tema Escuro
+    function toggleTheme() {
+      document.body.classList.toggle('dark');
+      localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light');
+    }
+    if (localStorage.getItem('theme') === 'dark') document.body.classList.add('dark');
+
+    // Toast Notification
+    function showToast(msg, type = 'info') {
+      let toast = document.getElementById('toast');
+      if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'toast';
+        toast.className = 'toast';
+        document.body.appendChild(toast);
+      }
+      toast.textContent = msg;
+      toast.className = 'toast show ' + type;
+      setTimeout(() => { toast.className = 'toast'; }, 3000);
+    }
+
+    // Modal de confirmação
+    function confirmModal(msg, onConfirm) {
+      let bg = document.createElement('div');
+      bg.className = 'confirm-modal-bg';
+      bg.innerHTML = `<div class='confirm-modal'><p>${msg}</p><button id='confirmYes'>Sim</button> <button id='confirmNo' class='secondary'>Cancelar</button></div>`;
+      document.body.appendChild(bg);
+      document.getElementById('confirmYes').onclick = () => { document.body.removeChild(bg); onConfirm(); };
+      document.getElementById('confirmNo').onclick = () => { document.body.removeChild(bg); };
+    }
+
+    // Filtro de chaves
+    function filterKeys() {
+      const q = document.getElementById('keyFilter').value.toLowerCase();
+      document.querySelectorAll('.key-list li').forEach(li => {
+        li.style.display = li.textContent.toLowerCase().includes(q) ? '' : 'none';
+      });
+    }
+
+    // Exportação CSV
+    function exportKeysCSV(keys, filename = 'chaves.csv') {
+      const csv = keys.map(k => k.replaceAll(';', ' ')).join('\n');
+      const blob = new Blob([csv], {type: 'text/csv'});
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }
+
+    // Dashboard simples
+    function updateDashboard(available, used) {
+      document.getElementById('statTotal').textContent = available.length + used.length;
+      document.getElementById('statDisp').textContent = available.length;
+      document.getElementById('statUsed').textContent = used.length;
+    }
+
+    // Integrar com painel existente
+    window.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('themeToggle').onclick = toggleTheme;
+      document.getElementById('keyFilter').oninput = filterKeys;
+      // Exportar disponíveis
+      document.getElementById('exportDisp').onclick = () => {
+        const keys = Array.from(document.querySelectorAll('#dispList li')).map(li => li.textContent.trim());
+        exportKeysCSV(keys, 'chaves_disponiveis.csv');
+      };
+      // Exportar usadas
+      document.getElementById('exportUsed').onclick = () => {
+        const keys = Array.from(document.querySelectorAll('#usedList li')).map(li => li.textContent.trim());
+        exportKeysCSV(keys, 'chaves_usadas.csv');
+      };
+    });
+  </script>
   <script>
     // Defina a URL do backend como constante, não visível no HTML
     const BACKEND_URL = "https://keygenx-ce8h.onrender.com";
