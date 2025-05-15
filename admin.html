@@ -161,8 +161,7 @@
       Painel de Administração
     </h1>
 
-    <label for="backendUrl">URL do Backend:</label>
-    <code id="backendUrl" style="display:block; margin-bottom:10px;">https://keygenx-ce8h.onrender.com</code>
+    <!-- Campo de URL do backend removido -->
 
     <label for="adminSecret">Senha de Admin:</label>
     <input type="password" id="adminSecret" autocomplete="current-password" aria-label="Senha de Admin" placeholder="Digite sua senha (ex: admin1x)" />
@@ -193,7 +192,9 @@
   </div>
 
   <script>
-    // Utilidades
+    // Defina a URL do backend como constante, não visível no HTML
+    const BACKEND_URL = "https://keygenx-ce8h.onrender.com";
+
     function setLoading(btn, loading) {
       if (loading) {
         btn.disabled = true;
@@ -240,7 +241,7 @@
 
     // Fetch padrão
     async function fetchData(endpoint, params = {}, method = 'GET') {
-      const backendUrl = document.getElementById('backendUrl').textContent.trim().replace(/\/+$/, '');
+      const backendUrl = BACKEND_URL.replace(/\/+$/, '');
       const adminSecret = document.getElementById('adminSecret').value.trim();
       const output = document.getElementById('output');
 
