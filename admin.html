@@ -161,10 +161,16 @@
       Painel de Administração
     </h1>
 
-    <!-- Campo de URL do backend removido -->
 
-    <label for="adminSecret">Senha de Admin:</label>
-    <input type="password" id="adminSecret" autocomplete="current-password" aria-label="Senha de Admin" placeholder="Digite sua senha (ex: admin1x)" />
+    <div id="loginModal" style="position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.18);display:flex;align-items:center;justify-content:center;z-index:1000;">
+      <div style="background:#fff;padding:32px 28px 22px 28px;border-radius:8px;box-shadow:0 4px 24px rgba(0,0,0,0.16);min-width:320px;max-width:90vw;text-align:center;">
+        <h2 style="color:#007bff;margin-top:0">Login Admin</h2>
+        <label for="adminSecretModal" style="margin-top:0;">Senha de Admin:</label>
+        <input type="password" id="adminSecretModal" autocomplete="current-password" aria-label="Senha de Admin" placeholder="Digite sua senha (ex: admin1x)" style="width:100%;padding:10px;margin-bottom:10px;border-radius:4px;border:1px solid #ccc;font-size:1rem;box-sizing:border-box;" />
+        <button id="btnLogin" style="width:100%;margin-top:6px;">Entrar</button>
+        <div id="loginError" class="error" style="margin-top:10px;display:none;"></div>
+      </div>
+    </div>
 
     <h2>Gerar Novas Chaves</h2>
     <label for="keyCount">Quantidade (1–100):</label>
@@ -186,6 +192,9 @@
 
     <h2>Status:</h2>
     <div id="output" aria-live="polite">Aguardando ação...</div>
+    <div style="margin-top: 18px; text-align: right;">
+      <button id="btnLogout" class="secondary" style="padding: 6px 18px;display:none;">Sair</button>
+    </div>
     <div class="footer">
       &copy; 2025 Painel Admin | Feito por Luke | Versão 1.1
     </div>
@@ -194,6 +203,9 @@
   <script>
     // Defina a URL do backend como constante, não visível no HTML
     const BACKEND_URL = "https://keygenx-ce8h.onrender.com";
+
+    // Guarda a senha em memória enquanto a página estiver aberta
+    let adminSecret = '';
 
     function setLoading(btn, loading) {
       if (loading) {
@@ -222,15 +234,6 @@
       }
     }
 
-    // Habilitar botões só se senha preenchida
-    function checkAdminFilled() {
-      const filled = !!document.getElementById('adminSecret').value.trim();
-      ['btnGerar','btnVer','btnExcluir','btnExcluirTodas'].forEach(id => {
-        document.getElementById(id).disabled = !filled;
-      });
-    }
-    document.getElementById('adminSecret').addEventListener('input', checkAdminFilled);
-
     // Copiar chave
     function copyKey(key, btn) {
       navigator.clipboard.writeText(key).then(() => {
@@ -242,11 +245,10 @@
     // Fetch padrão
     async function fetchData(endpoint, params = {}, method = 'GET') {
       const backendUrl = BACKEND_URL.replace(/\/+$/, '');
-      const adminSecret = document.getElementById('adminSecret').value.trim();
       const output = document.getElementById('output');
 
       if (!adminSecret) {
-        showOutput('error', '⚠️ Digite a senha de admin.');
+        showOutput('error', '⚠️ Faça login primeiro.');
         return null;
       }
       params.secret = adminSecret;
@@ -336,15 +338,73 @@
       setLoading(btn, true);
       const result = await fetchData('admin_delete_all_keys', {}, 'DELETE');
       setLoading(btn, false);
-      document.getElementById('adminSecret').value = '';
-      checkAdminFilled();
       if (result?.status === 'success') viewKeys();
     }
 
-    // Acessibilidade: Enter em senha ativa botões
-    document.getElementById('adminSecret').addEventListener('keyup', function(e){
-      if(e.key === 'Enter') checkAdminFilled();
+    // Modal de login
+    const loginModal = document.getElementById('loginModal');
+    const btnLogin = document.getElementById('btnLogin');
+    const adminSecretModal = document.getElementById('adminSecretModal');
+    const loginError = document.getElementById('loginError');
+    const btnLogout = document.getElementById('btnLogout');
+
+    function setPanelEnabled(enabled) {
+      ['btnGerar','btnVer','btnExcluir','btnExcluirTodas','deleteKey','keyCount'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.disabled = !enabled;
+      });
+      btnLogout.style.display = enabled ? '' : 'none';
+    }
+
+    async function doLogin() {
+      const pwd = adminSecretModal.value.trim();
+      if (!pwd) {
+        loginError.textContent = 'Digite a senha de admin.';
+        loginError.style.display = 'block';
+        return;
+      }
+      // Testar a senha com endpoint simples
+      btnLogin.disabled = true;
+      loginError.style.display = 'none';
+      try {
+        const url = `${BACKEND_URL.replace(/\/+$/, '')}/admin_view_keys?secret=${encodeURIComponent(pwd)}`;
+        const res = await fetch(url, { method: 'GET', cache: 'no-store' });
+        const data = await res.json();
+        if (data.status === 'success') {
+          adminSecret = pwd;
+          loginModal.style.display = 'none';
+          setPanelEnabled(true);
+          btnLogout.style.display = '';
+          viewKeys();
+        } else {
+          loginError.textContent = 'Senha incorreta.';
+          loginError.style.display = 'block';
+          setPanelEnabled(false);
+        }
+      } catch (e) {
+        loginError.textContent = 'Erro de conexão.';
+        loginError.style.display = 'block';
+        setPanelEnabled(false);
+      }
+      btnLogin.disabled = false;
+    }
+
+    btnLogin.onclick = doLogin;
+    adminSecretModal.addEventListener('keyup', function(e){
+      if (e.key === 'Enter') doLogin();
     });
+    btnLogout.onclick = function() {
+      adminSecret = '';
+      setPanelEnabled(false);
+      loginModal.style.display = 'flex';
+      adminSecretModal.value = '';
+      loginError.style.display = 'none';
+      showOutput('', 'Aguardando ação...');
+    };
+
+    // Inicialização: bloquear painel até login
+    setPanelEnabled(false);
+    loginModal.style.display = 'flex';
 
     // HTTPS warning
     if (window.location.protocol !== "https:") {
