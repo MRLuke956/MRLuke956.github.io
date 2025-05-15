@@ -2,27 +2,35 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Painel de Administração de Chaves</title>
   <style>
     body {
-      font-family: 'Segoe UI', sans-serif;
+      font-family: 'Segoe UI', Arial, sans-serif;
       background-color: #f0f2f5;
       color: #333;
-      margin: 20px;
+      margin: 0;
+      min-height: 100vh;
     }
     .container {
       max-width: 700px;
-      margin: auto;
+      margin: 40px auto 0 auto;
       background-color: #fff;
-      padding: 25px;
-      border-radius: 8px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      padding: 30px 28px 20px 28px;
+      border-radius: 10px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.12);
+      position: relative;
+    }
+    .logo-admin {
+      width: 44px;
+      vertical-align: middle;
+      margin-right: 8px;
     }
     h1, h2 {
       color: #007bff;
       border-bottom: 2px solid #007bff;
       padding-bottom: 10px;
+      margin-top: 0;
     }
     label {
       display: block;
@@ -35,6 +43,13 @@
       margin-bottom: 10px;
       border-radius: 4px;
       border: 1px solid #ccc;
+      font-size: 1rem;
+      box-sizing: border-box;
+    }
+    input[readonly] {
+      background: #e9ecef;
+      color: #444;
+      font-family: monospace;
     }
     button {
       background-color: #007bff;
@@ -44,20 +59,40 @@
       border-radius: 4px;
       cursor: pointer;
       margin-top: 10px;
+      font-size: 1rem;
+      transition: background 0.15s;
+      min-width: 110px;
+      position: relative;
     }
-    button:hover {
-      background-color: #0056b3;
+    button[disabled] {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+    button .spinner {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid #fff;
+      border-top: 3px solid #007bff;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      vertical-align: middle;
+      margin-left: 6px;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg);}
+      100% { transform: rotate(360deg);}
     }
     .secondary {
       background-color: #6c757d;
     }
-    .secondary:hover {
+    .secondary:hover:not([disabled]) {
       background-color: #545b62;
     }
     .danger {
       background-color: crimson;
     }
-    .danger:hover {
+    .danger:hover:not([disabled]) {
       background-color: darkred;
     }
     .success {
@@ -71,13 +106,31 @@
     .key-list {
       list-style: none;
       padding: 0;
+      margin: 0;
     }
     .key-list li {
       background: #e9ecef;
       margin-bottom: 5px;
-      padding: 8px;
+      padding: 8px 8px 8px 16px;
       border-radius: 3px;
       font-family: monospace;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .copy-btn {
+      background: transparent;
+      border: none;
+      color: #007bff;
+      cursor: pointer;
+      font-size: 1.1em;
+      margin-left: 12px;
+      padding: 2px 4px;
+      border-radius: 3px;
+      transition: background 0.15s;
+    }
+    .copy-btn:hover {
+      background: #dbeafe;
     }
     #output, .keys-container {
       margin-top: 20px;
@@ -85,121 +138,216 @@
       background: #f8f9fa;
       border: 1px solid #ccc;
       border-radius: 4px;
+      min-height: 35px;
+      font-size: 1.05em;
+    }
+    .footer {
+      margin-top: 30px;
+      text-align: center;
+      color: #888;
+      font-size: 0.97em;
+      padding-bottom: 10px;
+    }
+    @media (max-width: 600px) {
+      .container { padding: 10px 2vw; }
+      h1, h2 { font-size: 1.2em;}
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>Painel de Administração</h1>
+  <div class="container" aria-label="Painel de Administração">
+    <h1>
+      <img src="https://img.icons8.com/ios-filled/50/007bff/lock-2.png" alt="Admin" class="logo-admin"/>
+      Painel de Administração
+    </h1>
 
     <label for="backendUrl">URL do Backend:</label>
-    <input type="text" id="backendUrl" value="https://keygenx-ce8h.onrender.com" readonly />
+    <code id="backendUrl" style="display:block; margin-bottom:10px;">https://keygenx-ce8h.onrender.com</code>
 
     <label for="adminSecret">Senha de Admin:</label>
-    <input type="password" id="adminSecret" placeholder="Digite sua senha (ex: admin1x)" />
+    <input type="password" id="adminSecret" autocomplete="current-password" aria-label="Senha de Admin" placeholder="Digite sua senha (ex: admin1x)" />
 
     <h2>Gerar Novas Chaves</h2>
     <label for="keyCount">Quantidade (1–100):</label>
     <input type="number" id="keyCount" min="1" max="100" value="5" />
-    <button onclick="generateKeys()">Gerar</button>
+    <button id="btnGerar" onclick="generateKeys()" disabled>Gerar</button>
 
     <h2>Visualizar Chaves</h2>
-    <button class="secondary" onclick="viewKeys()">Ver Chaves</button>
-    <div id="keysListDisplay" class="keys-container">Nenhuma chave carregada ainda.</div>
+    <button id="btnVer" class="secondary" onclick="viewKeys()" disabled>Ver Chaves</button>
+    <div id="keysListDisplay" class="keys-container" aria-live="polite">Nenhuma chave carregada ainda.</div>
 
     <h2>Excluir Chaves</h2>
     <label for="deleteKey">Excluir chave específica:</label>
     <input type="text" id="deleteKey" placeholder="Ex: 1234-5678-ABCD-EFGH" />
-    <button class="secondary" onclick="deleteSpecificKey()">Excluir Chave</button>
+    <button id="btnExcluir" class="secondary" onclick="deleteSpecificKey()" disabled>Excluir Chave</button>
 
     <div style="margin-top:15px;">
-      <button class="danger" onclick="deleteAllKeys()">🧨 Excluir Todas as Chaves</button>
+      <button id="btnExcluirTodas" class="danger" onclick="deleteAllKeys()" disabled>🧨 Excluir Todas as Chaves</button>
     </div>
 
     <h2>Status:</h2>
-    <div id="output">Aguardando ação...</div>
+    <div id="output" aria-live="polite">Aguardando ação...</div>
+    <div class="footer">
+      &copy; 2025 Painel Admin | Feito por Luke | Versão 1.1
+    </div>
   </div>
 
   <script>
+    // Utilidades
+    function setLoading(btn, loading) {
+      if (loading) {
+        btn.disabled = true;
+        if (!btn.querySelector('.spinner')) {
+          const sp = document.createElement('span');
+          sp.className = 'spinner';
+          btn.appendChild(sp);
+        }
+      } else {
+        btn.disabled = false;
+        const sp = btn.querySelector('.spinner');
+        if (sp) sp.remove();
+      }
+    }
+
+    function showOutput(type, msg, timeout=0) {
+      const out = document.getElementById('output');
+      out.className = type;
+      out.textContent = msg;
+      if (timeout > 0) {
+        setTimeout(() => {
+          out.className = '';
+          out.textContent = 'Aguardando ação...';
+        }, timeout);
+      }
+    }
+
+    // Habilitar botões só se senha preenchida
+    function checkAdminFilled() {
+      const filled = !!document.getElementById('adminSecret').value.trim();
+      ['btnGerar','btnVer','btnExcluir','btnExcluirTodas'].forEach(id => {
+        document.getElementById(id).disabled = !filled;
+      });
+    }
+    document.getElementById('adminSecret').addEventListener('input', checkAdminFilled);
+
+    // Copiar chave
+    function copyKey(key, btn) {
+      navigator.clipboard.writeText(key).then(() => {
+        btn.textContent = '✔️';
+        setTimeout(() => { btn.textContent = '📋'; }, 1200);
+      });
+    }
+
+    // Fetch padrão
     async function fetchData(endpoint, params = {}, method = 'GET') {
-      const backendUrl = document.getElementById('backendUrl').value.trim().replace(/\/+$/, '');
+      const backendUrl = document.getElementById('backendUrl').textContent.trim().replace(/\/+$/, '');
       const adminSecret = document.getElementById('adminSecret').value.trim();
       const output = document.getElementById('output');
 
       if (!adminSecret) {
-        output.className = 'error';
-        output.textContent = '⚠️ Digite a senha de admin.';
+        showOutput('error', '⚠️ Digite a senha de admin.');
         return null;
       }
-
       params.secret = adminSecret;
       const url = `${backendUrl}/${endpoint}?${new URLSearchParams(params).toString()}`;
 
-      output.className = '';
-      output.textContent = '⏳ Processando...';
+      showOutput('', '⏳ Processando...');
 
       try {
         const res = await fetch(url, { method, cache: 'no-store' });
         const data = await res.json();
 
-        output.className = data.status === 'success' ? 'success' : 'error';
-        output.textContent = (data.status === 'success' ? '✅ ' : '❌ ') + (data.message || (data.status === 'success' ? 'Sucesso.' : 'Erro.'));
+        showOutput(data.status === 'success' ? 'success' : 'error',
+          (data.status === 'success' ? '✅ ' : '❌ ') + (data.message || (data.status === 'success' ? 'Sucesso.' : 'Erro.')),
+          data.status === 'success' ? 2000 : 0
+        );
         return data;
       } catch (err) {
-        output.className = 'error';
-        output.textContent = '❌ Erro de conexão: ' + err.message;
+        showOutput('error', '❌ Erro de conexão: ' + err.message);
         return null;
       }
     }
 
+    // Gerar chaves
     async function generateKeys() {
+      const btn = document.getElementById('btnGerar');
+      setLoading(btn, true);
       const count = parseInt(document.getElementById('keyCount').value, 10);
       if (isNaN(count) || count < 1 || count > 100) {
-        document.getElementById('output').className = 'error';
-        document.getElementById('output').textContent = '❌ Quantidade inválida.';
+        showOutput('error', '❌ Quantidade inválida.');
+        setLoading(btn, false);
         return;
       }
       await fetchData('admin_generate_keys', { count });
+      setLoading(btn, false);
+      viewKeys();
     }
 
+    // Visualizar chaves
     async function viewKeys() {
+      const btn = document.getElementById('btnVer');
+      setLoading(btn, true);
       const keysList = document.getElementById('keysListDisplay');
       keysList.innerHTML = '⏳ Carregando...';
-
       const result = await fetchData('admin_view_keys');
+      setLoading(btn, false);
+
       if (!result || result.status !== 'success' || !result.data) {
         keysList.innerHTML = '<p class="error">Erro ao carregar chaves.</p>';
         return;
       }
 
       const { available_keys = [], used_keys = [] } = result.data;
-
       let html = `<h3>🔑 Disponíveis (${available_keys.length}):</h3><ul class="key-list">`;
-      html += available_keys.map(k => `<li>${k}</li>`).join('') || '<li>Nenhuma chave disponível.</li>';
+      html += available_keys.map(k => 
+        `<li>${k}<button class="copy-btn" aria-label="Copiar chave" onclick="copyKey('${k}', this)">📋</button></li>`
+      ).join('') || '<li>Nenhuma chave disponível.</li>';
       html += '</ul>';
 
       html += `<h3 style="margin-top:20px;">📦 Usadas (${used_keys.length}):</h3><ul class="key-list">`;
-      html += used_keys.map(k => `<li>${k}</li>`).join('') || '<li>Nenhuma chave usada.</li>';
+      html += used_keys.map(k => 
+        `<li>${k}<button class="copy-btn" aria-label="Copiar chave" onclick="copyKey('${k}', this)">📋</button></li>`
+      ).join('') || '<li>Nenhuma chave usada.</li>';
       html += '</ul>';
 
       keysList.innerHTML = html;
     }
 
+    // Excluir chave específica
     async function deleteSpecificKey() {
+      const btn = document.getElementById('btnExcluir');
+      setLoading(btn, true);
       const key = document.getElementById('deleteKey').value.trim();
       if (!key) {
-        document.getElementById('output').className = 'error';
-        document.getElementById('output').textContent = '❌ Digite a chave que deseja excluir.';
+        showOutput('error', '❌ Digite a chave que deseja excluir.');
+        setLoading(btn, false);
         return;
       }
       const result = await fetchData('admin_delete_key', { key }, 'DELETE');
+      setLoading(btn, false);
       if (result?.status === 'success') viewKeys();
     }
 
+    // Excluir todas as chaves
     async function deleteAllKeys() {
+      const btn = document.getElementById('btnExcluirTodas');
       if (!confirm("⚠️ Tem certeza que deseja excluir TODAS as chaves? Essa ação não pode ser desfeita.")) return;
+      setLoading(btn, true);
       const result = await fetchData('admin_delete_all_keys', {}, 'DELETE');
+      setLoading(btn, false);
+      document.getElementById('adminSecret').value = '';
+      checkAdminFilled();
       if (result?.status === 'success') viewKeys();
+    }
+
+    // Acessibilidade: Enter em senha ativa botões
+    document.getElementById('adminSecret').addEventListener('keyup', function(e){
+      if(e.key === 'Enter') checkAdminFilled();
+    });
+
+    // HTTPS warning
+    if (window.location.protocol !== "https:") {
+      showOutput('error', '⚠️ Atenção: Use HTTPS para maior segurança.');
     }
   </script>
 </body>
