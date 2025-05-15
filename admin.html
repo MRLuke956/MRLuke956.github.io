@@ -65,6 +65,7 @@
       margin-top: 15px;
       margin-bottom: 5px;
       font-weight: bold;
+      text-align: left; /* Alinhar labels à esquerda */
     }
     input[type="text"], input[type="number"], input[type="password"] {
       width: 100%;
@@ -78,7 +79,7 @@
       color: var(--text);
     }
     input[readonly] {
-      background: #e9ecef; /* Considerar var() para tema escuro */
+      background: #e9ecef;
       color: #444;
       font-family: monospace;
     }
@@ -97,8 +98,8 @@
       font-size: 1rem;
       transition: background-color 0.15s;
       min-width: 110px;
-      position: relative; /* Para o spinner */
-      display: inline-flex; /* Para alinhar texto e spinner */
+      position: relative; 
+      display: inline-flex; 
       align-items: center;
       justify-content: center;
     }
@@ -114,6 +115,7 @@
     button.danger:hover:not([disabled]) { background-color: darkred; }
     body.dark button.danger:hover:not([disabled]) { background-color: #c82333; }
     
+    .status-message { min-height: 1.2em; } /* Para evitar pulos de layout */
     .status-message.success { color: var(--success); font-weight: bold; }
     .status-message.error { color: var(--error); font-weight: bold; }
 
@@ -127,7 +129,7 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      color: var(--text); /* Cor de texto geral */
+      color: var(--text); 
     }
     body.dark .key-list li {
         background: #2c3242;
@@ -156,7 +158,7 @@
       border-radius: 4px;
       min-height: 35px;
       font-size: 1.05em;
-      color: var(--text); /* Cor de texto geral */
+      color: var(--text); 
     }
     body.dark #output, body.dark .keys-container {
         background: #2c3242;
@@ -170,7 +172,7 @@
       right: 32px;
       background: var(--panel);
       color: var(--text);
-      border-left: 6px solid var(--primary); /* Cor padrão */
+      border-left: 6px solid var(--primary); 
       box-shadow: var(--shadow);
       padding: 16px 24px;
       border-radius: 6px;
@@ -188,7 +190,7 @@
     }
     .toast.success { border-left-color: var(--success); }
     .toast.error   { border-left-color: var(--error); }
-    .toast.info    { border-left-color: var(--info); } /* Adicionado para consistência */
+    .toast.info    { border-left-color: var(--info); } 
 
 
     .theme-toggle {
@@ -201,7 +203,7 @@
       font-size: 1.5em;
       color: var(--primary);
       transition: color 0.2s;
-      padding: 5px; /* Aumentar área de clique */
+      padding: 5px; 
     }
     .theme-toggle:hover { color: var(--danger); }
 
@@ -210,7 +212,7 @@
       top: 0; left: 0; width: 100vw; height: 100vh;
       background: rgba(0,0,0,0.25);
       z-index: 2000;
-      display: flex; /* Controlado por JS: none/flex */
+      display: flex; 
       align-items: center;
       justify-content: center;
       backdrop-filter: blur(2px);
@@ -237,26 +239,36 @@
     }
     body.dark .footer { color: #666; }
 
-    /* Spinner CSS */
     .spinner {
       display: inline-block;
-      width: 1em; /* Tamanho relativo ao font-size do botão */
+      width: 1em; 
       height: 1em;
-      border: 3px solid currentColor; /* Usa a cor do texto do botão */
-      border-right-color: transparent; /* Cria o efeito de "gap" no círculo */
+      border: 3px solid currentColor; 
+      border-right-color: transparent; 
       border-radius: 50%;
       animation: spin .75s linear infinite;
-      margin-left: 10px; /* Espaço entre o texto do botão e o spinner */
-      vertical-align: -0.125em; /* Ajuste fino vertical */
+      margin-left: 10px; 
+      vertical-align: -0.125em; 
     }
     @keyframes spin {
       to { transform: rotate(360deg); }
     }
-    /* Em botões secundários com tema claro, a cor do texto pode ser escura */
-    body:not(.dark) button.secondary { color: var(--text); } /* Se o texto for escuro no tema claro */
+    body:not(.dark) button.secondary { color: var(--text); } 
     body:not(.dark) button.secondary .spinner {
         border: 3px solid currentColor;
         border-right-color: transparent;
+    }
+
+    .visually-hidden {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
     }
 
 
@@ -279,12 +291,17 @@
     </h1>
 
     <div id="loginModal" style="position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.18);display:flex;align-items:center;justify-content:center;z-index:1000;">
+      <!-- Correção de Acessibilidade: Adicionado campo de username (oculto) -->
       <form id="loginForm" style="background:var(--panel);padding:32px 28px 22px 28px;border-radius:8px;box-shadow:var(--shadow);min-width:320px;max-width:90vw;text-align:center;">
-        <h2 style="color:var(--primary);margin-top:0;">Login Admin</h2>
+        <h2 style="color:var(--primary);margin-top:0;" id="loginModalTitle">Login Admin</h2>
+         <!-- Campo de usuário oculto para acessibilidade e gerenciadores de senha -->
+        <label for="adminUsernameModal" class="visually-hidden">Nome de Usuário (Admin):</label>
+        <input type="text" id="adminUsernameModal" name="username" autocomplete="username" class="visually-hidden" value="admin">
+        
         <label for="adminSecretModal" style="margin-top:0;">Senha de Admin:</label>
-        <input type="password" id="adminSecretModal" autocomplete="current-password" aria-label="Senha de Admin" placeholder="Digite sua senha (ex: admin1x)" style="width:100%;padding:10px;margin-bottom:10px;border-radius:4px;border:1px solid #ccc;font-size:1rem;box-sizing:border-box;" />
+        <input type="password" id="adminSecretModal" name="password" autocomplete="current-password" aria-label="Senha de Admin" placeholder="Digite sua senha" style="width:100%;padding:10px;margin-bottom:10px;border-radius:4px;border:1px solid #ccc;font-size:1rem;box-sizing:border-box;" required />
         <button type="submit" id="btnLogin" style="width:100%;margin-top:6px;">Entrar</button>
-        <div id="loginError" class="status-message error" style="margin-top:10px;min-height:1.2em;display:none;"></div>
+        <div id="loginError" class="status-message error" style="margin-top:10px;display:none;"></div>
       </form>
     </div>
 
@@ -303,7 +320,7 @@
     
     <section aria-labelledby="delete-keys-title">
       <h2 id="delete-keys-title">Excluir Chaves</h2>
-      <form id="deleteSpecificKeyForm">
+      <form id="deleteSpecificKeyForm" onsubmit="event.preventDefault(); deleteSpecificKey();">
         <label for="deleteKey">Excluir chave específica:</label>
         <input type="text" id="deleteKey" placeholder="Ex: 1234-5678-ABCD-EFGH" />
         <button type="button" id="btnExcluir" class="secondary" onclick="deleteSpecificKey()" disabled>Excluir Chave</button>
@@ -321,14 +338,12 @@
     </div>
 
     <div class="footer">
-      © <span id="currentYear"></span> Painel Admin | Feito por Luke | Versão 1.2
+      © <span id="currentYear"></span> Painel Admin | Feito por Luke | Versão 1.3
     </div>
   </div>
 
-  <!-- Toast Notification (inicialmente oculto) -->
   <div id="toast" class="toast" role="alert"></div>
 
-  <!-- Modal de Confirmação (inicialmente oculto) -->
   <div id="confirmModal" class="confirm-modal-bg" style="display: none;" role="alertdialog" aria-modal="true" aria-labelledby="confirmModalMessage">
     <div class="confirm-modal">
       <p id="confirmModalMessage"></p>
@@ -339,7 +354,7 @@
 
   <script>
     // --- CONFIGURAÇÃO ---
-    const BACKEND_URL = "https://keygenx-ce8h.onrender.com"; // Defina a URL do backend
+    const BACKEND_URL = "https://keygenx-ce8h.onrender.com"; 
 
     // --- ELEMENTOS DO DOM ---
     const themeToggleButton = document.getElementById('themeToggle');
@@ -347,6 +362,7 @@
     const loginForm = document.getElementById('loginForm');
     const btnLogin = document.getElementById('btnLogin');
     const adminSecretModalInput = document.getElementById('adminSecretModal');
+    // const adminUsernameModalInput = document.getElementById('adminUsernameModal'); // Se precisar interagir com ele
     const loginErrorDiv = document.getElementById('loginError');
     const btnLogout = document.getElementById('btnLogout');
     const outputDiv = document.getElementById('output');
@@ -370,7 +386,7 @@
     let currentConfirmCallback = null;
 
     // --- ESTADO DA APLICAÇÃO ---
-    let adminSecret = ''; // Guarda a senha em memória enquanto a página estiver aberta
+    let adminSecret = ''; 
 
     // --- FUNÇÕES UTILITÁRIAS ---
     function setLoading(buttonElement, isLoading) {
@@ -389,7 +405,7 @@
     }
 
     function showOutput(type, message, timeout = 0) {
-      outputDiv.className = `status-message ${type}`; // Adiciona 'status-message' para estilização base
+      outputDiv.className = `status-message ${type}`; 
       outputDiv.textContent = message;
       if (timeout > 0) {
         setTimeout(() => {
@@ -411,11 +427,11 @@
       });
     }
     
-    function showToast(message, type = 'info') { // type: 'info', 'success', 'error'
+    function showToast(message, type = 'info') { 
         if (toastTimeout) clearTimeout(toastTimeout);
         
         toastElement.textContent = message;
-        toastElement.className = `toast show ${type}`; // Adiciona classe de tipo
+        toastElement.className = `toast show ${type}`; 
         
         toastTimeout = setTimeout(() => {
             toastElement.className = 'toast';
@@ -445,7 +461,7 @@
       [btnGerar, btnVer, btnExcluir, btnExcluirTodas, deleteKeyInput, keyCountInput].forEach(el => {
         if (el) el.disabled = !enabled;
       });
-      btnLogout.style.display = enabled ? 'inline-flex' : 'none'; // inline-flex para consistência com botões
+      btnLogout.style.display = enabled ? 'inline-flex' : 'none'; 
     }
 
     async function handleLogin() {
@@ -453,6 +469,7 @@
       if (!password) {
         loginErrorDiv.textContent = 'Digite a senha de admin.';
         loginErrorDiv.style.display = 'block';
+        adminSecretModalInput.focus();
         return;
       }
 
@@ -460,7 +477,6 @@
       loginErrorDiv.style.display = 'none';
 
       try {
-        // Testar a senha com endpoint simples (ex: admin_view_keys)
         const url = `${BACKEND_URL.replace(/\/+$/, '')}/admin_view_keys?secret=${encodeURIComponent(password)}`;
         const response = await fetch(url, { method: 'GET', cache: 'no-store' });
         const data = await response.json();
@@ -470,10 +486,11 @@
           loginModal.style.display = 'none';
           setPanelEnabled(true);
           showToast('Login bem-sucedido!', 'success');
-          viewKeys(); // Carregar chaves após login
+          viewKeys(); 
         } else {
           loginErrorDiv.textContent = data.message || 'Senha incorreta.';
           loginErrorDiv.style.display = 'block';
+          adminSecretModalInput.focus();
           setPanelEnabled(false);
         }
       } catch (error) {
@@ -492,22 +509,32 @@
       adminSecretModalInput.value = '';
       loginErrorDiv.style.display = 'none';
       keysListDisplayDiv.innerHTML = 'Nenhuma chave carregada ainda.';
-      showOutput('', 'Sessão encerrada. Aguardando ação...');
+      outputDiv.className = 'status-message';
+      outputDiv.textContent = 'Aguardando ação...';
       showToast('Você saiu.', 'info');
     }
 
-    // --- API CALLS ---
+    // --- API CALLS (CORRIGIDO PARA DELETE 403) ---
     async function fetchDataFromAPI(endpoint, params = {}, method = 'GET', buttonToLoad = null) {
       const backendUrl = BACKEND_URL.replace(/\/+$/, '');
+      
       if (!adminSecret) {
         showOutput('error', '⚠️ Faça login primeiro.');
-        handleLogout(); // Forçar logout se o segredo sumir
+        handleLogout(); 
         return null;
       }
-      params.secret = adminSecret; // Adiciona o segredo a todos os requests
 
-      const queryParams = new URLSearchParams(params).toString();
-      const url = `${backendUrl}/${endpoint}${method === 'GET' && queryParams ? '?' + queryParams : ''}`;
+      const localParams = { ...params };
+      localParams.secret = adminSecret; 
+
+      let url = `${backendUrl}/${endpoint}`;
+      
+      if (method === 'GET' || method === 'DELETE') { 
+        const queryParamsString = new URLSearchParams(localParams).toString();
+        if (queryParamsString) {
+          url += `?${queryParamsString}`;
+        }
+      }
       
       const fetchOptions = {
         method,
@@ -515,26 +542,34 @@
         headers: {}
       };
 
-      if (method !== 'GET') {
-        fetchOptions.headers['Content-Type'] = 'application/json'; // Assumindo JSON para POST/DELETE
-        fetchOptions.body = JSON.stringify(params); // Enviar params no body para POST/DELETE
+      if (method === 'POST' || method === 'PUT' || method === 'DELETE') {
+        fetchOptions.headers['Content-Type'] = 'application/json';
+        fetchOptions.body = JSON.stringify(localParams); 
       }
       
-      showOutput('', '⏳ Processando...');
       if (buttonToLoad) setLoading(buttonToLoad, true);
+      showOutput('', '⏳ Processando...');
 
       try {
-        const response = await fetch(url, fetchOptions);
-        if (!response.ok) { // Trata erros HTTP como 401, 403, 500 etc.
+        const response = await fetch(url, fetchOptions); 
+
+        if (!response.ok) {
             let errorMsg = `Erro HTTP ${response.status}: ${response.statusText}`;
+            let responseDataOnError = null;
             try {
-                const errorData = await response.json();
-                errorMsg = errorData.message || errorMsg;
-                if (response.status === 401 || response.status === 403) { // Unauthorized or Forbidden
-                    showToast('Sessão expirada ou inválida. Faça login novamente.', 'error');
-                    handleLogout();
-                }
-            } catch (e) { /* não conseguiu parsear JSON, usa statusText */ }
+                responseDataOnError = await response.json();
+                errorMsg = responseDataOnError.message || errorMsg;
+                console.error(`Backend error for ${method} ${url}: Status ${response.status}`, responseDataOnError); 
+            } catch (e) { 
+                const errorBodyText = await response.text();
+                console.error(`Backend error for ${method} ${url}: Status ${response.status}. Body:`, errorBodyText);
+                errorMsg = `${errorMsg} - ${errorBodyText.substring(0,100)}`;
+            }
+
+            if (response.status === 401 || response.status === 403) { 
+                showToast('Sessão expirada ou inválida. Faça login novamente.', 'error');
+                handleLogout();
+            }
             showOutput('error', `❌ ${errorMsg}`);
             return null;
         }
@@ -548,7 +583,7 @@
         return data;
       } catch (err) {
         showOutput('error', '❌ Erro de conexão com o servidor: ' + err.message);
-        console.error("Fetch error:", err);
+        console.error(`Fetch error for ${method} ${url}:`, err);
         return null;
       } finally {
         if (buttonToLoad) setLoading(buttonToLoad, false);
@@ -560,11 +595,12 @@
       const count = parseInt(keyCountInput.value, 10);
       if (isNaN(count) || count < 1 || count > 100) {
         showOutput('error', '❌ Quantidade inválida. Deve ser entre 1 e 100.');
+        keyCountInput.focus();
         return;
       }
       const result = await fetchDataFromAPI('admin_generate_keys', { count }, 'POST', btnGerar);
       if (result && result.status === 'success') {
-        viewKeys(); // Atualiza a lista de chaves
+        viewKeys(); 
         if (result.data && result.data.generated_keys) {
           showToast(`${result.data.generated_keys.length} chaves geradas!`, 'success');
         } else {
@@ -602,26 +638,26 @@
       const keyToDelete = deleteKeyInput.value.trim();
       if (!keyToDelete) {
         showOutput('error', '❌ Digite a chave que deseja excluir.');
+        deleteKeyInput.focus();
         return;
       }
       showConfirmModal(`Tem certeza que deseja excluir a chave "${keyToDelete}"?`, async () => {
         const result = await fetchDataFromAPI('admin_delete_key', { key: keyToDelete }, 'DELETE', btnExcluir);
         if (result && result.status === 'success') {
-          viewKeys(); // Atualiza a lista
-          deleteKeyInput.value = ''; // Limpa o campo
+          viewKeys(); 
+          deleteKeyInput.value = ''; 
           showToast(`Chave "${keyToDelete}" excluída.`, 'success');
         }
       });
     }
     
-    // Wrapper para deleteAllKeys para usar o modal de confirmação
     function deleteAllKeysConfirm() {
         showConfirmModal(
             "⚠️ Tem certeza que deseja excluir TODAS as chaves? Essa ação não pode ser desfeita.",
-            async () => { // Esta é a callback onConfirm
+            async () => { 
                 const result = await fetchDataFromAPI('admin_delete_all_keys', {}, 'DELETE', btnExcluirTodas);
                 if (result && result.status === 'success') {
-                    viewKeys(); // Atualiza a lista
+                    viewKeys(); 
                     showToast('Todas as chaves foram excluídas!', 'success');
                 }
             }
@@ -642,10 +678,8 @@
       if (savedTheme === 'dark') {
         document.body.classList.add('dark');
       }
-      // Atualiza o ícone do botão do tema
       themeToggleButton.textContent = document.body.classList.contains('dark') ? '☀️' : '🌓';
       themeToggleButton.setAttribute('aria-label', document.body.classList.contains('dark') ? 'Alternar para tema claro' : 'Alternar para tema escuro');
-
     }
 
     // --- INICIALIZAÇÃO ---
@@ -662,13 +696,12 @@
       
       btnLogout.onclick = handleLogout;
 
-      // Inicialização: bloquear painel até login
       setPanelEnabled(false);
-      loginModal.style.display = 'flex'; // Mostrar modal de login ao carregar
+      loginModal.style.display = 'flex'; 
+      adminSecretModalInput.focus(); // Foco no campo de senha ao carregar modal
 
-      // Aviso HTTPS
       if (window.location.protocol !== "https:") {
-        showToast('⚠️ Atenção: Use HTTPS para maior segurança.', 'error');
+        showToast('⚠️ Atenção: Use HTTPS para maior segurança.', 'info');
       }
     });
   </script>
