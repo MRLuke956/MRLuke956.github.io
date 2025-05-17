@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Painel de Administração de Chaves</title>
+  <script src="https://www.google.com/recaptcha/api.js" async defer></script>
   <style>
     :root {
       --bg: #f0f2f5;
@@ -297,6 +298,11 @@
         
         <label for="adminSecretModal" style="margin-top:0;">Senha de Admin:</label>
         <input type="password" id="adminSecretModal" name="password" autocomplete="current-password" aria-label="Senha de Admin" placeholder="Digite sua senha" style="width:100%;padding:10px;margin-bottom:10px;border-radius:4px;border:1px solid #ccc;font-size:1rem;box-sizing:border-box;" required />
+        
+        <!-- reCAPTCHA widget -->
+        <div class="g-recaptcha" data-sitekey="6Lf2VD4rAAAAAKVTYfYhKeVfaCA9W0HToPSfmB50" data-action="LOGIN" style="margin-top:15px;margin-bottom:15px;display:flex;justify-content:center;"></div>
+        <div id="recaptchaError" class="status-message error" style="margin-top:5px;display:none;">Por favor, complete o captcha antes de continuar.</div>
+        
         <button type="submit" id="btnLogin" style="width:100%;margin-top:6px;">Entrar</button>
         <div id="loginError" class="status-message error" style="margin-top:10px;display:none;"></div>
       </form>
@@ -352,6 +358,7 @@
   <script>
     // --- CONFIGURAÇÃO ---
     const BACKEND_URL = "https://keygenx-ce8h.onrender.com"; 
+    const RECAPTCHA_SITE_KEY = "6Lf2VD4rAAAAAKVTYfYhKeVfaCA9W0HToPSfmB50";
 
     // --- ELEMENTOS DO DOM ---
     const themeToggleButton = document.getElementById('themeToggle');
@@ -469,12 +476,20 @@
         return;
       }
 
-      setLoading(btnLogin, true);
-      loginErrorDiv.style.display = 'none';
+      // Verificar se o reCAPTCHA foi preenchido
+      const recaptchaResponse = grecaptcha.getResponse();
+      if (!recaptchaResponse) {
+        document.getElementById('recaptchaError').style.display = 'block';
+        return;
+      }
 
       try {
-        // Login usa /admin_view_keys que é GET e espera 'secret' na query (compatível com server.js original)
-        const url = `${BACKEND_URL.replace(/\/+$/, '')}/admin_view_keys?secret=${encodeURIComponent(password)}`;
+        setLoading(btnLogin, true);
+        loginErrorDiv.style.display = 'none';
+        document.getElementById('recaptchaError').style.display = 'none';
+
+        // Login usa /admin_view_keys que é GET e espera 'secret' na query e agora também o recaptchaToken
+        const url = `${BACKEND_URL.replace(/\/+$/, '')}/admin_view_keys?secret=${encodeURIComponent(password)}&recaptcha=${encodeURIComponent(recaptchaResponse)}`;
         const response = await fetch(url, { method: 'GET', cache: 'no-store' });
         const data = await response.json();
 
@@ -485,16 +500,20 @@
           showToast('Login bem-sucedido!', 'success');
           viewKeys(); 
         } else {
-          loginErrorDiv.textContent = data.message || 'Senha incorreta.';
+          loginErrorDiv.textContent = data.message || 'Senha incorreta ou falha na verificação de segurança.';
           loginErrorDiv.style.display = 'block';
           adminSecretModalInput.focus();
           setPanelEnabled(false);
+          // Resetar o reCAPTCHA para forçar nova verificação
+          grecaptcha.reset();
         }
       } catch (error) {
-        loginErrorDiv.textContent = 'Erro de conexão ao tentar logar.';
+        loginErrorDiv.textContent = 'Erro de conexão ao tentar logar ou falha na verificação de segurança.';
         loginErrorDiv.style.display = 'block';
         setPanelEnabled(false);
         console.error("Erro no login:", error);
+        // Resetar o reCAPTCHA em caso de erro
+        grecaptcha.reset();
       }
       setLoading(btnLogin, false);
     }
@@ -524,6 +543,18 @@
       // Parâmetros sempre na query string para o server.js original
       const localParams = { ...params };
       localParams.secret = adminSecret; 
+      
+      // Adicionar token reCAPTCHA para operações sensíveis
+      if (['admin_generate_keys', 'admin_delete_key', 'admin_delete_all_keys'].includes(endpoint)) {
+        try {
+          const recaptchaToken = await grecaptcha.execute(RECAPTCHA_SITE_KEY, {action: endpoint});
+          localParams.recaptcha = recaptchaToken;
+        } catch (error) {
+          showOutput('error', '⚠️ Erro na verificação de segurança. Tente novamente.');
+          console.error("Erro ao obter token reCAPTCHA:", error);
+          return null;
+        }
+      }
 
       let url = `${backendUrl}/${endpoint}`;
       const queryParamsString = new URLSearchParams(localParams).toString();
@@ -532,10 +563,9 @@
       }
       
       const fetchOptions = {
-        method, // O método será GET para /admin_generate_keys conforme chamada
+        method,
         cache: 'no-store',
         headers: {}
-        // NENHUM CORPO (BODY) para as rotas de admin GET/DELETE do server.js original
       };
       
       if (buttonToLoad) setLoading(buttonToLoad, true);
