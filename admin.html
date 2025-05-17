@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://www.google.com https://www.gstatic.com 'unsafe-inline' 'unsafe-eval'; frame-src https://www.google.com; style-src 'self' 'unsafe-inline';">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://www.google.com https://www.gstatic.com 'unsafe-inline' 'unsafe-eval'; frame-src https://www.google.com; style-src 'self' 'unsafe-inline'; img-src 'self' https://img.icons8.com https://www.gstatic.com data:; connect-src 'self' https://keygenx-ce8h.onrender.com https://www.google.com;">
   <title>Painel de Administração de Chaves</title>
-  <script src="https://www.google.com/recaptcha/enterprise.js" async defer></script>
+  <script src="https://www.google.com/recaptcha/enterprise.js?onload=recaptchaEnterpriseLoaded&render=explicit" async defer></script>
   <style>
     :root {
       --bg: #f0f2f5;
@@ -406,53 +406,6 @@
       delete: null
     };
 
-    function initRecaptchas() {
-      window.onloadRecaptchaCallback = function() {
-        // Login reCAPTCHA
-        recaptchaWidgets.login = grecaptcha.enterprise.render('loginCaptcha', {
-          'sitekey': RECAPTCHA_SITE_KEY,
-          'action': 'LOGIN',
-          'callback': function(token) {
-            loginCaptchaToken = token;
-            document.getElementById('recaptchaError').style.display = 'none';
-          },
-          'expired-callback': function() {
-            loginCaptchaToken = null;
-            document.getElementById('recaptchaError').style.display = 'block';
-          }
-        });
-
-        // Generate Keys reCAPTCHA
-        recaptchaWidgets.generate = grecaptcha.enterprise.render('generateCaptcha', {
-          'sitekey': RECAPTCHA_SITE_KEY,
-          'action': 'admin_generate_keys',
-          'callback': function(token) {
-            generateCaptchaToken = token;
-          },
-          'expired-callback': function() {
-            generateCaptchaToken = null;
-          }
-        });
-
-        // Delete Keys reCAPTCHA
-        recaptchaWidgets.delete = grecaptcha.enterprise.render('deleteCaptcha', {
-          'sitekey': RECAPTCHA_SITE_KEY,
-          'action': 'admin_delete_key',
-          'callback': function(token) {
-            deleteCaptchaToken = token;
-          },
-          'expired-callback': function() {
-            deleteCaptchaToken = null;
-          }
-        });
-      };
-      
-      // Adicionar o callback à lista global
-      if (typeof window.recaptchaEnterpriseLoaded !== 'function') {
-        window.recaptchaEnterpriseLoaded = window.onloadRecaptchaCallback;
-      }
-    }
-
     // --- FUNÇÕES UTILITÁRIAS ---
     function setLoading(buttonElement, isLoading) {
       if (isLoading) {
@@ -837,17 +790,59 @@
       if (window.location.protocol !== "https:") {
         showToast('⚠️ Atenção: Use HTTPS para maior segurança.', 'info');
       }
-      
-      // Inicializar reCAPTCHA Enterprise
-      initRecaptchas();
     });
   </script>
   
   <script>
     // Callback para quando o reCAPTCHA Enterprise é carregado
     function recaptchaEnterpriseLoaded() {
-      if (typeof window.onloadRecaptchaCallback === 'function') {
-        window.onloadRecaptchaCallback();
+      console.log("reCAPTCHA Enterprise carregado");
+      
+      try {
+        // Login reCAPTCHA
+        recaptchaWidgets.login = grecaptcha.enterprise.render('loginCaptcha', {
+          'sitekey': RECAPTCHA_SITE_KEY,
+          'theme': 'light',
+          'callback': function(token) {
+            console.log("Token de login recebido");
+            loginCaptchaToken = token;
+            document.getElementById('recaptchaError').style.display = 'none';
+          },
+          'expired-callback': function() {
+            loginCaptchaToken = null;
+            document.getElementById('recaptchaError').style.display = 'block';
+          }
+        });
+
+        // Generate Keys reCAPTCHA
+        recaptchaWidgets.generate = grecaptcha.enterprise.render('generateCaptcha', {
+          'sitekey': RECAPTCHA_SITE_KEY,
+          'theme': 'light',
+          'callback': function(token) {
+            console.log("Token de geração recebido");
+            generateCaptchaToken = token;
+          },
+          'expired-callback': function() {
+            generateCaptchaToken = null;
+          }
+        });
+
+        // Delete Keys reCAPTCHA
+        recaptchaWidgets.delete = grecaptcha.enterprise.render('deleteCaptcha', {
+          'sitekey': RECAPTCHA_SITE_KEY,
+          'theme': 'light',
+          'callback': function(token) {
+            console.log("Token de exclusão recebido");
+            deleteCaptchaToken = token;
+          },
+          'expired-callback': function() {
+            deleteCaptchaToken = null;
+          }
+        });
+        
+        console.log("Widgets reCAPTCHA inicializados com sucesso");
+      } catch (error) {
+        console.error("Erro ao inicializar reCAPTCHA:", error);
       }
     }
   </script>
