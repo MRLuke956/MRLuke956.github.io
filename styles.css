@@ -1034,6 +1034,29 @@ body {
     }
 }
 
+/* FNAF 3 - Verde fosforescente e flicker direcionado */
+@keyframes fnafGreenFlicker {
+    0%, 8%, 10%, 12%, 100% { opacity: 1; filter: none; }
+    9%, 11% { opacity: 0.55; filter: blur(0.2px) saturate(1.1); }
+    35% { text-shadow: 0 0 2px #6eff3b, 0 0 8px #19ff73; }
+    36% { text-shadow: 0 0 0px #6eff3b, 0 0 0px #19ff73; }
+    70% { opacity: 0.9; }
+    80% { opacity: 0.7; }
+}
+
+.fnaf-green-text {
+    color: #7aff42;
+    text-shadow: 0 0 1px rgba(122, 255, 66, 0.6), 0 0 6px rgba(25, 255, 115, 0.45), 1px 0 0 rgba(255, 0, 0, 0.06), -1px 0 0 rgba(0, 220, 255, 0.06);
+}
+
+.fnaf-flicker {
+    animation: fnafGreenFlicker 3.75s infinite;
+}
+
+.fnaf-flicker-rare {
+    animation: fnafGreenFlicker 7.5s infinite;
+}
+
 /* Scrollbar personalizada */
 ::-webkit-scrollbar {
     width: 8px;

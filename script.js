@@ -203,21 +203,15 @@ window.addEventListener('scroll', () => {
     }
 });
 
-// Contador animado para estatísticas
-function animateCounter(element, target, duration = 2000) {
+// Contador animado para estatísticas (sem sufixo "+")
+function animateCounter(element, target, duration = 1200) {
     let start = 0;
-    const increment = target / (duration / 16);
-    
+    const increment = Math.max(1, Math.floor(target / (duration / 16)));
     function updateCounter() {
-        start += increment;
-        if (start < target) {
-            element.textContent = Math.floor(start) + '+';
-            requestAnimationFrame(updateCounter);
-        } else {
-            element.textContent = target + '+';
-        }
+        start = Math.min(target, start + increment);
+        element.textContent = String(start);
+        if (start < target) requestAnimationFrame(updateCounter);
     }
-    
     updateCounter();
 }
 
@@ -240,6 +234,39 @@ const statsObserver = new IntersectionObserver((entries) => {
 document.querySelectorAll('.stat-card').forEach(card => {
     statsObserver.observe(card);
 });
+
+// ----- GitHub: estatísticas reais -----
+async function fetchGithubStats() {
+    const followersEl = document.getElementById('followersCount');
+    const starsEl = document.getElementById('starsCount');
+    const reposEl = document.getElementById('reposCount');
+    const followingEl = document.getElementById('followingCount');
+    if (!followersEl || !starsEl || !reposEl || !followingEl) return;
+
+    try {
+        const [userRes, reposRes] = await Promise.all([
+            fetch('https://api.github.com/users/MRLuke956'),
+            fetch('https://api.github.com/users/MRLuke956/repos?per_page=100')
+        ]);
+        if (!userRes.ok || !reposRes.ok) throw new Error('Falha ao consultar GitHub');
+        const user = await userRes.json();
+        const repos = await reposRes.json();
+
+        const followers = user.followers ?? 0;
+        const following = user.following ?? 0;
+        const publicRepos = user.public_repos ?? repos.length ?? 0;
+        const totalStars = repos.reduce((sum, r) => sum + (r.stargazers_count || 0), 0);
+
+        animateCounter(followersEl, followers);
+        animateCounter(followingEl, following);
+        animateCounter(reposEl, publicRepos);
+        animateCounter(starsEl, totalStars);
+    } catch (e) {
+        // fallback: mostra valores estáticos 0
+    }
+}
+
+document.addEventListener('DOMContentLoaded', fetchGithubStats);
 
 // Efeito de hover nos cards de projeto
 document.querySelectorAll('.project-card').forEach(card => {
