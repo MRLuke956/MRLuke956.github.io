@@ -416,3 +416,49 @@ function createParticles() {
 
 // Descomente a linha abaixo se quiser o efeito de partículas
 // createParticles();
+
+// ----- GitHub: listar últimos repositórios atualizados -----
+async function fetchLatestRepos() {
+    const container = document.getElementById('latestRepos');
+    if (!container) return;
+
+    try {
+        const res = await fetch('https://api.github.com/users/MRLuke956/repos?per_page=100&sort=updated');
+        if (!res.ok) throw new Error('Falha ao carregar repositórios.');
+        const repos = await res.json();
+
+        const exclude = new Set(['MRLuke956', 'MRLuke956.github.io']);
+        const filtered = repos
+            .filter(r => !r.fork && !exclude.has(r.name))
+            .slice(0, 6);
+
+        container.innerHTML = '';
+        for (const repo of filtered) {
+            const lang = repo.language ? `<span>${repo.language}</span>` : '';
+            const license = repo.license?.spdx_id && repo.license.spdx_id !== 'NOASSERTION' ? `<span>${repo.license.spdx_id}</span>` : '';
+            const stars = `<span>★ ${repo.stargazers_count}</span>`;
+            const updated = new Date(repo.updated_at).toLocaleDateString('pt-BR');
+
+            const card = document.createElement('a');
+            card.href = repo.html_url;
+            card.target = '_blank';
+            card.rel = 'noopener noreferrer';
+            card.className = 'repo-card glitch-hover';
+            card.innerHTML = `
+                <h4>${repo.name}</h4>
+                <p style="color: var(--text-secondary);">${repo.description ?? 'Sem descrição'}</p>
+                <div class="repo-meta">
+                    ${lang}
+                    ${license}
+                    ${stars}
+                    <span>Atualizado: ${updated}</span>
+                </div>
+            `;
+            container.appendChild(card);
+        }
+    } catch (err) {
+        container.innerHTML = '<p style="text-align:center;color:var(--text-secondary)">Não foi possível carregar os repositórios agora.</p>';
+    }
+}
+
+document.addEventListener('DOMContentLoaded', fetchLatestRepos);
