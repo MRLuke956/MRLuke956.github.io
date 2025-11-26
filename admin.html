@@ -803,11 +803,13 @@
       let customDate = null;
 
       if (type === 'custom') {
-        customDate = document.getElementById('customDate').value;
-        if (!customDate) {
+        const rawDate = document.getElementById('customDate').value;
+        if (!rawDate) {
           showOutput('error', '❌ Selecione uma data de expiração.');
           return;
         }
+        // Converte a data local do input para ISO String (UTC) para garantir que o servidor entenda o fuso horário correto
+        customDate = new Date(rawDate).toISOString();
       }
 
       if (isNaN(count) || count < 1 || count > 50) {
@@ -822,8 +824,7 @@
       }, 'POST', btnElement || document.querySelector('button[onclick="generatePremiumKeys()"]'));
 
       if (result && result.status === 'success') {
-        grecaptcha.enterprise.reset(recaptchaWidgets.generate);
-        generateCaptchaToken = null;
+
 
         // Exibir as keys geradas em um alerta ou modal simples
         let msg = `✅ ${result.message}\n\nKeys:\n${result.keys.join('\n')}`;
@@ -868,21 +869,11 @@
         return;
       }
 
-      // Obter o token do reCAPTCHA Enterprise
-      if (!deleteCaptchaToken) {
-        showOutput('error', '❌ Por favor, complete o captcha antes de excluir a chave.');
-        return;
-      }
-
       showConfirmModal(`Tem certeza que deseja excluir a chave "${keyToDelete}"?`, async () => {
         // server.js original usa DELETE com params na query
         const result = await fetchDataFromAPI(`admin/keys/${keyToDelete}`, {}, 'DELETE', btnExcluir);
 
         if (result && result.status === 'success') {
-          // Resetar o reCAPTCHA após o uso
-          grecaptcha.enterprise.reset(recaptchaWidgets.delete);
-          deleteCaptchaToken = null;
-
           viewKeys();
           deleteKeyInput.value = '';
           showToast(`Chave "${keyToDelete}" excluída.`, 'success');
@@ -891,12 +882,6 @@
     }
 
     function deleteAllKeysConfirm() {
-      // Obter o token do reCAPTCHA
-      if (!deleteCaptchaToken) {
-        showOutput('error', '❌ Por favor, complete o captcha antes de excluir todas as chaves.');
-        return;
-      }
-
       showConfirmModal(
         "⚠️ Tem certeza que deseja excluir TODAS as chaves? Essa ação não pode ser desfeita.",
         async () => {
@@ -904,10 +889,6 @@
           const result = await fetchDataFromAPI('admin/keys', {}, 'DELETE', btnExcluirTodas);
 
           if (result && result.status === 'success') {
-            // Resetar o reCAPTCHA após o uso
-            grecaptcha.enterprise.reset(recaptchaWidgets.delete);
-            deleteCaptchaToken = null;
-
             viewKeys();
             showToast('Todas as chaves foram excluídas!', 'success');
           }
@@ -946,6 +927,12 @@
 
     // --- INICIALIZAÇÃO ---
     document.addEventListener('DOMContentLoaded', () => {
+      // Adicionar Favicon dinamicamente
+      const link = document.createElement('link');
+      link.rel = 'icon';
+      link.href = 'favicon.ico'; // Usa o mesmo favicon do site principal
+      document.head.appendChild(link);
+
       applyInitialTheme();
       currentYearSpan.textContent = new Date().getFullYear();
 
@@ -965,62 +952,29 @@
       if (window.location.protocol !== "https:") {
         showToast('⚠️ Atenção: Use HTTPS para maior segurança.', 'info');
       }
+
+      // --- AUTO LOGOUT (SEGURANÇA EXTRA) ---
+      let inactivityTimer;
+      const INACTIVITY_LIMIT = 15 * 60 * 1000; // 15 minutos
+
+      function resetInactivityTimer() {
+        clearTimeout(inactivityTimer);
+        if (adminSecret) { // Só ativa se estiver logado
+          inactivityTimer = setTimeout(() => {
+            handleLogout();
+            showToast('Sessão encerrada por inatividade.', 'info');
+          }, INACTIVITY_LIMIT);
+        }
+      }
+
+      // Monitorar atividade do usuário
+      ['mousemove', 'keydown', 'click', 'scroll'].forEach(event => {
+        document.addEventListener(event, resetInactivityTimer);
+      });
     });
   </script>
 
-  <script>
-    // Callback para quando o reCAPTCHA Enterprise é carregado
-    function recaptchaEnterpriseLoaded() {
-      console.log("reCAPTCHA Enterprise carregado");
 
-      try {
-        // Login reCAPTCHA
-        recaptchaWidgets.login = grecaptcha.enterprise.render('loginCaptcha', {
-          'sitekey': RECAPTCHA_SITE_KEY,
-          'theme': 'light',
-          'callback': function (token) {
-            console.log("Token de login recebido");
-            loginCaptchaToken = token;
-            document.getElementById('recaptchaError').style.display = 'none';
-          },
-          'expired-callback': function () {
-            loginCaptchaToken = null;
-            document.getElementById('recaptchaError').style.display = 'block';
-          }
-        });
-
-        // Generate Keys reCAPTCHA
-        recaptchaWidgets.generate = grecaptcha.enterprise.render('generateCaptcha', {
-          'sitekey': RECAPTCHA_SITE_KEY,
-          'theme': 'light',
-          'callback': function (token) {
-            console.log("Token de geração recebido");
-            generateCaptchaToken = token;
-          },
-          'expired-callback': function () {
-            generateCaptchaToken = null;
-          }
-        });
-
-        // Delete Keys reCAPTCHA
-        recaptchaWidgets.delete = grecaptcha.enterprise.render('deleteCaptcha', {
-          'sitekey': RECAPTCHA_SITE_KEY,
-          'theme': 'light',
-          'callback': function (token) {
-            console.log("Token de exclusão recebido");
-            deleteCaptchaToken = token;
-          },
-          'expired-callback': function () {
-            deleteCaptchaToken = null;
-          }
-        });
-
-        console.log("Widgets reCAPTCHA inicializados com sucesso");
-      } catch (error) {
-        console.error("Erro ao inicializar reCAPTCHA:", error);
-      }
-    }
-  </script>
 </body>
 
 </html>
