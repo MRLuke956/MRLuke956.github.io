@@ -1182,19 +1182,7 @@
         </button>
       </div>
 
-      <!-- Danger Zone -->
-      <div class="card danger">
-        <div class="card-header">
-          <div class="card-icon">⚠️</div>
-          <h2 class="card-title">Zona de Perigo</h2>
-        </div>
-        <p style="color: var(--text-secondary); margin-bottom: 16px; font-size: 0.9rem;">
-          ⚠️ Estas ações são irreversíveis. Proceda com cuidado.
-        </p>
-        <button class="btn btn-danger btn-block" id="btnDeleteAll">
-          <span>💣 Excluir TODAS as Chaves</span>
-        </button>
-      </div>
+      <!-- REMOVIDO: Zona de Perigo - Funcionalidade de deletar TODAS as chaves desabilitada por segurança -->
     </div>
 
     <!-- Status Output -->
@@ -1271,7 +1259,7 @@
       btnGeneratePremium: $('btnGeneratePremium'),
       btnViewKeys: $('btnViewKeys'),
       btnDeleteKey: $('btnDeleteKey'),
-      btnDeleteAll: $('btnDeleteAll'),
+      // btnDeleteAll removido - funcionalidade desabilitada por segurança
       deleteKeyInput: $('deleteKeyInput'),
       availableKeysList: $('availableKeysList'),
       usedKeysList: $('usedKeysList'),
@@ -1703,21 +1691,7 @@
       deleteKey(key);
     }
 
-    function deleteAllKeys() {
-      showConfirm(
-        '⚠️ ATENÇÃO',
-        'Esta ação irá EXCLUIR TODAS as chaves do sistema. Esta ação NÃO pode ser desfeita!',
-        '💣',
-        async () => {
-          const data = await apiCall('admin/keys', 'DELETE', null, elements.btnDeleteAll);
-          if (data && data.status === 'success') {
-            showToast('Todas as chaves foram excluídas!', 'success');
-            loadKeys();
-          }
-          hideConfirm();
-        }
-      );
-    }
+    // FUNÇÃO REMOVIDA: deleteAllKeys() - desabilitada por segurança
 
     // ==================== THEME ====================
     function toggleTheme() {
@@ -1765,7 +1739,7 @@
       elements.btnGeneratePremium.addEventListener('click', generatePremiumKeys);
       elements.btnViewKeys.addEventListener('click', loadKeys);
       elements.btnDeleteKey.addEventListener('click', deleteSpecificKey);
-      elements.btnDeleteAll.addEventListener('click', deleteAllKeys);
+      // btnDeleteAll event listener removido - funcionalidade desabilitada por segurança
 
       // EVENT DELEGATION: Handle key button clicks securely (prevents XSS via inline handlers)
       document.getElementById('keysContainer').addEventListener('click', (e) => {
